@@ -34,41 +34,50 @@ pub fn main_fs(
     out_frag_color: &mut f32,
 ) {
     // Get G-Buffer values
-    let frag_pos = texture_position_depth.sample(*sampler_position_depth, in_uv).xyz();
+    let frag_pos = texture_position_depth
+        .sample(*sampler_position_depth, in_uv)
+        .xyz();
     let normal = (texture_normal.sample(*sampler_normal, in_uv).xyz() * 2.0 - 1.0).normalize();
-    
+
     // Get a random vector using a noise lookup
     let noise_uv = ubo.noise_scale * in_uv;
-    let random_vec = texture_ssao_noise.sample(*sampler_ssao_noise, noise_uv).xyz() * 2.0 - 1.0;
-    
+    let random_vec = texture_ssao_noise
+        .sample(*sampler_ssao_noise, noise_uv)
+        .xyz()
+        * 2.0
+        - 1.0;
+
     // Create TBN matrix
     let tangent = (random_vec - normal * random_vec.dot(normal)).normalize();
     let bitangent = tangent.cross(normal);
     let tbn = Mat3::from_cols(tangent, bitangent, normal);
-    
+
     // Calculate occlusion value
     let mut occlusion = 0.0f32;
     let bias = 0.025f32;
-    
+
     for i in 0..SSAO_KERNEL_SIZE {
         let sample_vec = ubo_ssao_kernel.samples[i].xyz();
         let sample_pos = frag_pos + tbn * sample_vec * SSAO_RADIUS;
-        
+
         // Project
         let mut offset = vec4(sample_pos.x, sample_pos.y, sample_pos.z, 1.0);
         offset = ubo.projection * offset;
         let offset_xyz = offset.xyz() / offset.w;
-        let offset_xy = vec2(
-            offset_xyz.x * 0.5 + 0.5,
-            offset_xyz.y * 0.5 + 0.5
-        );
-        
-        let sample_depth = -texture_position_depth.sample(*sampler_position_depth, offset_xy).w;
-        
+        let offset_xy = vec2(offset_xyz.x * 0.5 + 0.5, offset_xyz.y * 0.5 + 0.5);
+
+        let sample_depth = -texture_position_depth
+            .sample(*sampler_position_depth, offset_xy)
+            .w;
+
         let range_check = smoothstep(0.0, 1.0, SSAO_RADIUS / (frag_pos.z - sample_depth).abs());
-        occlusion += if sample_depth >= sample_pos.z + bias { 1.0 } else { 0.0 } * range_check;
+        occlusion += if sample_depth >= sample_pos.z + bias {
+            1.0
+        } else {
+            0.0
+        } * range_check;
     }
-    
+
     occlusion = 1.0 - (occlusion / SSAO_KERNEL_SIZE as f32);
     *out_frag_color = occlusion;
 }

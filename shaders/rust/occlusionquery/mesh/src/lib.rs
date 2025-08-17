@@ -1,7 +1,11 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{vec3, vec4, Mat3, Mat4, Vec3, Vec4}, num_traits::Float};
+use spirv_std::{
+    glam::{vec3, vec4, Mat3, Mat4, Vec3, Vec4},
+    num_traits::Float,
+    spirv,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -30,9 +34,9 @@ pub fn main_vs(
     *out_normal = in_normal;
     *out_color = in_color * ubo.color.truncate();
     *out_visible = ubo.visible;
-    
+
     *out_position = ubo.projection * ubo.view * ubo.model * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
-    
+
     let pos = ubo.model * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
     let model_mat3 = Mat3::from_cols(
         ubo.model.x_axis.truncate(),
@@ -60,7 +64,12 @@ pub fn main_fs(
         let r = (-l).reflect(n);
         let diffuse = n.dot(l).max(0.25) * in_color;
         let specular = r.dot(v).max(0.0).powf(8.0) * vec3(0.75, 0.75, 0.75);
-        *out_frag_color = vec4(diffuse.x + specular.x, diffuse.y + specular.y, diffuse.z + specular.z, 1.0);
+        *out_frag_color = vec4(
+            diffuse.x + specular.x,
+            diffuse.y + specular.y,
+            diffuse.z + specular.z,
+            1.0,
+        );
     } else {
         *out_frag_color = vec4(0.1, 0.1, 0.1, 1.0);
     }

@@ -1,10 +1,13 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{vec2, vec3, vec4, Mat4, Vec2, Vec3, IVec3}};
 use spirv_std::glam::Vec4Swizzles;
 use spirv_std::ray_tracing::{AccelerationStructure, RayFlags};
 use spirv_std::Image;
+use spirv_std::{
+    glam::{vec2, vec3, vec4, IVec3, Mat4, Vec2, Vec3},
+    spirv,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -29,7 +32,13 @@ pub fn main_rgen(
     let origin = cam.view_inverse * vec4(0.0, 0.0, 0.0, 1.0);
     let target = cam.proj_inverse * vec4(d.x, d.y, 1.0, 1.0);
     let normalized_target = target.xyz().normalize();
-    let direction = cam.view_inverse * vec4(normalized_target.x, normalized_target.y, normalized_target.z, 0.0);
+    let direction = cam.view_inverse
+        * vec4(
+            normalized_target.x,
+            normalized_target.y,
+            normalized_target.z,
+            0.0,
+        );
 
     let tmin = 0.001;
     let tmax = 10000.0;
@@ -54,7 +63,7 @@ pub fn main_rgen(
     unsafe {
         image.write(
             spirv_std::glam::IVec2::new(launch_id.x, launch_id.y),
-            vec4(hit_value.x, hit_value.y, hit_value.z, 0.0)
+            vec4(hit_value.x, hit_value.y, hit_value.z, 0.0),
         );
     }
 }
@@ -69,8 +78,6 @@ pub fn main_rchit(
 }
 
 #[spirv(miss)]
-pub fn main_rmiss(
-    #[spirv(incoming_ray_payload)] hit_value: &mut Vec3,
-) {
+pub fn main_rmiss(#[spirv(incoming_ray_payload)] hit_value: &mut Vec3) {
     *hit_value = vec3(0.0, 0.0, 0.2);
 }

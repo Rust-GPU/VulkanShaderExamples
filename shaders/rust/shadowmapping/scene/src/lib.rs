@@ -41,7 +41,7 @@ pub fn main_vs(
     *out_normal = in_normal;
 
     *out_position = ubo.projection * ubo.view * ubo.model * Vec4::from((in_pos, 1.0));
-    
+
     let pos = ubo.model * Vec4::from((in_pos, 1.0));
     *out_normal = Mat3::from_mat4(ubo.model) * in_normal;
     *out_light_vec = (ubo.light_pos.xyz() - in_pos).normalize();
@@ -63,12 +63,18 @@ pub fn main_fs(
     out_frag_color: &mut Vec4,
 ) {
     const AMBIENT: f32 = 0.1;
-    
+
     let shadow_coord = in_shadow_coord / in_shadow_coord.w;
     let shadow = if enable_pcf == 1 {
         filter_pcf(shadow_coord, texture_shadow, sampler_shadow)
     } else {
-        texture_proj(shadow_coord, vec2(0.0, 0.0), texture_shadow, sampler_shadow, AMBIENT)
+        texture_proj(
+            shadow_coord,
+            vec2(0.0, 0.0),
+            texture_shadow,
+            sampler_shadow,
+            AMBIENT,
+        )
     };
 
     let n = in_normal.normalize();
@@ -82,15 +88,17 @@ pub fn main_fs(
 }
 
 fn texture_proj(
-    shadow_coord: Vec4, 
-    off: Vec2, 
+    shadow_coord: Vec4,
+    off: Vec2,
     texture_shadow: &Image!(2D, type=f32, sampled),
     sampler_shadow: &Sampler,
-    ambient: f32
+    ambient: f32,
 ) -> f32 {
     let mut shadow = 1.0;
     if shadow_coord.z > -1.0 && shadow_coord.z < 1.0 {
-        let dist = texture_shadow.sample(*sampler_shadow, shadow_coord.xy() + off).x;
+        let dist = texture_shadow
+            .sample(*sampler_shadow, shadow_coord.xy() + off)
+            .x;
         if shadow_coord.w > 0.0 && dist < shadow_coord.z {
             shadow = ambient;
         }
@@ -104,7 +112,7 @@ fn filter_pcf(
     sampler_shadow: &Sampler,
 ) -> f32 {
     const AMBIENT: f32 = 0.1;
-    
+
     // Since we can't query texture size in Rust GPU, we'll use a fixed scale
     let scale = 1.5;
     let texel_size = 1.0 / 2048.0; // Assuming 2048x2048 shadow map
@@ -114,15 +122,15 @@ fn filter_pcf(
     let mut shadow_factor = 0.0;
     let mut count = 0;
     let range = 1;
-    
+
     for x in -range..=range {
         for y in -range..=range {
             shadow_factor += texture_proj(
-                sc, 
+                sc,
                 vec2(dx * x as f32, dy * y as f32),
                 texture_shadow,
                 sampler_shadow,
-                AMBIENT
+                AMBIENT,
             );
             count += 1;
         }

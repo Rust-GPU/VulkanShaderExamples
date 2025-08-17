@@ -1,7 +1,11 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{vec3, vec4, Mat3, Mat4, Vec3, Vec4, Vec4Swizzles}, num_traits::Float};
+use spirv_std::{
+    glam::{vec3, vec4, Mat3, Mat4, Vec3, Vec4, Vec4Swizzles},
+    num_traits::Float,
+    spirv,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -25,7 +29,7 @@ pub fn main_vs(
 ) {
     *out_color = in_color;
     *out_position = ubo.projection * ubo.model * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
-    
+
     let pos = ubo.model * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
     *out_normal = Mat3::from_mat4(ubo.model) * in_normal;
     let l_pos = Mat3::from_mat4(ubo.model) * ubo.light_pos.xyz();

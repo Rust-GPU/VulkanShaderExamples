@@ -1,8 +1,8 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 
-use spirv_std::spirv;
 use spirv_std::glam::{vec3, vec4, Vec3, Vec4};
 use spirv_std::num_traits::Float;
+use spirv_std::spirv;
 
 #[spirv(vertex)]
 pub fn main_vs(
@@ -16,12 +16,7 @@ pub fn main_vs(
         (vertex_index & 2) as f32,
         (vertex_index & 2) as f32,
     );
-    *out_position = vec4(
-        out_uvw.x * 2.0 - 1.0,
-        out_uvw.y * 2.0 - 1.0,
-        0.0,
-        1.0,
-    );
+    *out_position = vec4(out_uvw.x * 2.0 - 1.0, out_uvw.y * 2.0 - 1.0, 0.0, 1.0);
 }
 
 const HASHSCALE3: Vec3 = Vec3::new(443.897, 441.423, 437.195);
@@ -50,10 +45,7 @@ fn star_field(pos: Vec3) -> Vec3 {
 }
 
 #[spirv(fragment)]
-pub fn main_fs(
-    in_uvw: Vec3,
-    out_color: &mut Vec4,
-) {
+pub fn main_fs(in_uvw: Vec3, out_color: &mut Vec4) {
     let color = star_field(in_uvw);
     *out_color = vec4(color.x, color.y, color.z, 1.0);
 }

@@ -1,7 +1,11 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{vec3, vec4, Mat4, Vec3, Vec4}, num_traits::Float};
+use spirv_std::{
+    glam::{vec3, vec4, Mat4, Vec3, Vec4},
+    num_traits::Float,
+    spirv,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -42,19 +46,16 @@ fn star_field(pos: Vec3) -> Vec3 {
 }
 
 #[spirv(fragment)]
-pub fn main_fs(
-    in_uvw: Vec3,
-    out_frag_color: &mut Vec4,
-) {
+pub fn main_fs(in_uvw: Vec3, out_frag_color: &mut Vec4) {
     // Fake atmosphere at the bottom
     let atmosphere = vec3(0.1, 0.15, 0.4) * (in_uvw.y + 0.25);
     let atmosphere = vec3(
         atmosphere.x.clamp(0.0, 1.0),
         atmosphere.y.clamp(0.0, 1.0),
-        atmosphere.z.clamp(0.0, 1.0)
+        atmosphere.z.clamp(0.0, 1.0),
     );
 
     let color = star_field(in_uvw) + atmosphere;
-    
+
     *out_frag_color = vec4(color.x, color.y, color.z, 1.0);
 }

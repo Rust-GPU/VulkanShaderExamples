@@ -1,8 +1,12 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{mat3, vec3, vec4, Mat4, Vec3, Vec4}, Image, num_traits::Float};
 use spirv_std::image::SampledImage;
+use spirv_std::{
+    glam::{mat3, vec3, vec4, Mat4, Vec3, Vec4},
+    num_traits::Float,
+    spirv, Image,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -27,7 +31,7 @@ pub fn main_vs(
     *out_normal = in_normal;
     *out_color = in_color;
     *out_position = ubo.projection * ubo.model * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
-    
+
     let pos = ubo.model * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
     let model_mat3 = mat3(
         ubo.model.x_axis.truncate(),
@@ -46,13 +50,15 @@ pub fn main_fs(
     in_color: Vec3,
     in_view_vec: Vec3,
     in_light_vec: Vec3,
-    #[spirv(descriptor_set = 0, binding = 1)] _sampler_color_map: &SampledImage<Image!(2D, type=f32, sampled)>,
+    #[spirv(descriptor_set = 0, binding = 1)] _sampler_color_map: &SampledImage<
+        Image!(2D, type=f32, sampled),
+    >,
     out_frag_color: &mut Vec4,
 ) {
     // Desaturate color
     let gray = in_color.dot(vec3(0.2126, 0.7152, 0.0722));
     let color = in_color.lerp(vec3(gray, gray, gray), 0.65);
-    
+
     // High ambient colors because mesh materials are pretty dark
     let ambient = color * vec3(1.0, 1.0, 1.0);
     let n = in_normal.normalize();

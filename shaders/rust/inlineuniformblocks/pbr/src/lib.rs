@@ -1,8 +1,12 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{mat3, vec3, vec4, Mat4, Vec3, Vec4}, num_traits::Float};
 use core::f32::consts::PI;
+use spirv_std::{
+    glam::{mat3, vec3, vec4, Mat4, Vec3, Vec4},
+    num_traits::Float,
+    spirv,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -48,7 +52,8 @@ pub fn main_vs(
         ubo.model.z_axis.truncate(),
     );
     *out_normal = model_mat3 * in_normal;
-    *out_position = ubo.projection * ubo.view * vec4(out_world_pos.x, out_world_pos.y, out_world_pos.z, 1.0);
+    *out_position =
+        ubo.projection * ubo.view * vec4(out_world_pos.x, out_world_pos.y, out_world_pos.z, 1.0);
 }
 
 // Normal Distribution function --------------------------------------

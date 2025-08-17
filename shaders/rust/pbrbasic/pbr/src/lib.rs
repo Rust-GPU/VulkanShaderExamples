@@ -1,8 +1,12 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{vec3, vec4, Mat3, Mat4, Vec3, Vec4, Vec4Swizzles}, num_traits::Float};
 use core::f32::consts::PI;
+use spirv_std::{
+    glam::{vec3, vec4, Mat3, Mat4, Vec3, Vec4, Vec4Swizzles},
+    num_traits::Float,
+    spirv,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -49,7 +53,8 @@ pub fn main_vs(
     let loc_pos = (ubo.model * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0)).xyz();
     *out_world_pos = loc_pos + push_consts.obj_pos;
     *out_normal = Mat3::from_mat4(ubo.model) * in_normal;
-    *out_position = ubo.projection * ubo.view * vec4(out_world_pos.x, out_world_pos.y, out_world_pos.z, 1.0);
+    *out_position =
+        ubo.projection * ubo.view * vec4(out_world_pos.x, out_world_pos.y, out_world_pos.z, 1.0);
 }
 
 fn material_color(material: &FragmentPushConsts) -> Vec3 {
@@ -80,7 +85,14 @@ fn f_schlick(cos_theta: f32, metallic: f32, material: &FragmentPushConsts) -> Ve
 }
 
 // Specular BRDF composition
-fn brdf(l: Vec3, v: Vec3, n: Vec3, metallic: f32, roughness: f32, material: &FragmentPushConsts) -> Vec3 {
+fn brdf(
+    l: Vec3,
+    v: Vec3,
+    n: Vec3,
+    metallic: f32,
+    roughness: f32,
+    material: &FragmentPushConsts,
+) -> Vec3 {
     // Precalculate vectors and dot products
     let h = (v + l).normalize();
     let dot_nv = n.dot(v).clamp(0.0, 1.0);

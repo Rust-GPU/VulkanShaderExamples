@@ -2,8 +2,8 @@
 
 use spirv_std::{
     glam::{Mat4, Vec2, Vec3, Vec4, Vec4Swizzles},
-    spirv, Image,
     image::SampledImage,
+    spirv, Image,
 };
 
 #[repr(C)]
@@ -32,18 +32,18 @@ pub fn main_vs(
     out_tangent: &mut Vec3,
 ) {
     let tmp_pos = in_pos + ubo.instance_pos[instance_index as usize];
-    
+
     *out_position = ubo.projection * ubo.view * ubo.model * tmp_pos;
-    
+
     *out_uv = in_uv;
-    
+
     // Vertex position in world space
     *out_world_pos = (ubo.model * tmp_pos).xyz();
-    
+
     // Normal in world space
     *out_normal = in_normal.normalize();
     *out_tangent = in_tangent.normalize();
-    
+
     // Currently just vertex color
     *out_color = in_color;
 }
@@ -55,14 +55,18 @@ pub fn main_fs(
     _in_color: Vec3,
     in_world_pos: Vec3,
     in_tangent: Vec3,
-    #[spirv(descriptor_set = 0, binding = 1)] sampler_color: &SampledImage<Image!(2D, type=f32, sampled)>,
-    #[spirv(descriptor_set = 0, binding = 2)] sampler_normal_map: &SampledImage<Image!(2D, type=f32, sampled)>,
+    #[spirv(descriptor_set = 0, binding = 1)] sampler_color: &SampledImage<
+        Image!(2D, type=f32, sampled),
+    >,
+    #[spirv(descriptor_set = 0, binding = 2)] sampler_normal_map: &SampledImage<
+        Image!(2D, type=f32, sampled),
+    >,
     out_position: &mut Vec4,
     out_normal: &mut Vec4,
     out_albedo: &mut Vec4,
 ) {
     *out_position = Vec4::new(in_world_pos.x, in_world_pos.y, in_world_pos.z, 1.0);
-    
+
     // Calculate normal in tangent space
     let n = in_normal.normalize();
     let t = in_tangent.normalize();
@@ -71,6 +75,6 @@ pub fn main_fs(
     // TBN matrix multiplication - transforms from tangent space to world space
     let tnorm = t * tnorm.x + b * tnorm.y + n * tnorm.z;
     *out_normal = Vec4::new(tnorm.x, tnorm.y, tnorm.z, 1.0);
-    
+
     *out_albedo = sampler_color.sample(in_uv);
 }

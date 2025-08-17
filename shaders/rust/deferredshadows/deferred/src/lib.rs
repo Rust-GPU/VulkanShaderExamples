@@ -2,9 +2,9 @@
 
 use spirv_std::{
     glam::{Mat4, Vec2, Vec3, Vec4, Vec4Swizzles},
-    spirv, Image,
     image::SampledImage,
     num_traits::Float,
+    spirv, Image,
 };
 
 const LIGHT_COUNT: usize = 3;
@@ -42,7 +42,11 @@ fn texture_proj(
     let shadow_coord_xy = shadow_coord.xy() * 0.5 + 0.5;
 
     if shadow_coord.z > -1.0 && shadow_coord.z < 1.0 {
-        let sample_coord = Vec3::new(shadow_coord_xy.x + offset.x, shadow_coord_xy.y + offset.y, layer);
+        let sample_coord = Vec3::new(
+            shadow_coord_xy.x + offset.x,
+            shadow_coord_xy.y + offset.y,
+            layer,
+        );
         let dist = shadow_map.sample(sample_coord).x;
         if shadow_coord.w > 0.0 && dist < shadow_coord.z {
             shadow = SHADOW_FACTOR;
@@ -86,7 +90,8 @@ fn shadow(
 ) -> Vec3 {
     let mut result = frag_color;
     for i in 0..LIGHT_COUNT {
-        let shadow_clip = ubo.lights[i].view_matrix * Vec4::new(frag_pos.x, frag_pos.y, frag_pos.z, 1.0);
+        let shadow_clip =
+            ubo.lights[i].view_matrix * Vec4::new(frag_pos.x, frag_pos.y, frag_pos.z, 1.0);
 
         let shadow_factor = if USE_PCF {
             filter_pcf(shadow_map, shadow_clip, i as f32)
@@ -105,10 +110,7 @@ pub fn main_vs(
     #[spirv(position)] out_position: &mut Vec4,
     out_uv: &mut Vec2,
 ) {
-    let uv = Vec2::new(
-        ((vertex_index << 1) & 2) as f32,
-        (vertex_index & 2) as f32,
-    );
+    let uv = Vec2::new(((vertex_index << 1) & 2) as f32, (vertex_index & 2) as f32);
     *out_uv = uv;
     *out_position = Vec4::new(uv.x * 2.0 - 1.0, uv.y * 2.0 - 1.0, 0.0, 1.0);
 }
@@ -116,11 +118,19 @@ pub fn main_vs(
 #[spirv(fragment)]
 pub fn main_fs(
     in_uv: Vec2,
-    #[spirv(descriptor_set = 0, binding = 1)] position_sampler: &SampledImage<Image!(2D, type=f32, sampled)>,
-    #[spirv(descriptor_set = 0, binding = 2)] normal_sampler: &SampledImage<Image!(2D, type=f32, sampled)>,
-    #[spirv(descriptor_set = 0, binding = 3)] albedo_sampler: &SampledImage<Image!(2D, type=f32, sampled)>,
+    #[spirv(descriptor_set = 0, binding = 1)] position_sampler: &SampledImage<
+        Image!(2D, type=f32, sampled),
+    >,
+    #[spirv(descriptor_set = 0, binding = 2)] normal_sampler: &SampledImage<
+        Image!(2D, type=f32, sampled),
+    >,
+    #[spirv(descriptor_set = 0, binding = 3)] albedo_sampler: &SampledImage<
+        Image!(2D, type=f32, sampled),
+    >,
     #[spirv(uniform, descriptor_set = 0, binding = 4)] ubo: &UBO,
-    #[spirv(descriptor_set = 0, binding = 5)] shadow_map: &SampledImage<Image!(2D, type=f32, sampled, arrayed)>,
+    #[spirv(descriptor_set = 0, binding = 5)] shadow_map: &SampledImage<
+        Image!(2D, type=f32, sampled, arrayed),
+    >,
     out_frag_color: &mut Vec4,
 ) {
     // Get G-Buffer values
@@ -179,7 +189,11 @@ pub fn main_fs(
         let ndot_r = r.dot(v).max(0.0);
         let spec = Vec3::splat(ndot_r.powf(16.0) * albedo.w * 2.5);
 
-        frag_color += (diff + spec) * spot_effect * height_attenuation * ubo.lights[i].color.xyz() * albedo.xyz();
+        frag_color += (diff + spec)
+            * spot_effect
+            * height_attenuation
+            * ubo.lights[i].color.xyz()
+            * albedo.xyz();
     }
 
     // Shadow calculations in a separate pass

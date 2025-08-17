@@ -2,9 +2,8 @@
 
 use spirv_std::{
     glam::{Mat3, Mat4, Vec3, Vec4},
-    spirv,
     num_traits::Float,
-    Image, Sampler,
+    spirv, Image, Sampler,
 };
 
 #[repr(C)]
@@ -32,20 +31,24 @@ pub fn main_vs(
     *out_uvw = in_pos;
 
     match type_id as i32 {
-        0 => { // Skybox
+        0 => {
+            // Skybox
             let pos = Mat3::from_mat4(ubo.modelview) * in_pos;
             *out_pos = pos;
             *out_position = ubo.projection * Vec4::new(pos.x, pos.y, pos.z, 1.0);
         }
-        1 => { // Object
+        1 => {
+            // Object
             let pos = ubo.modelview * Vec4::new(in_pos.x, in_pos.y, in_pos.z, 1.0);
             *out_pos = Vec3::new(pos.x, pos.y, pos.z);
-            *out_position = ubo.projection * ubo.modelview * Vec4::new(in_pos.x, in_pos.y, in_pos.z, 1.0);
+            *out_position =
+                ubo.projection * ubo.modelview * Vec4::new(in_pos.x, in_pos.y, in_pos.z, 1.0);
         }
         _ => {
             let pos = ubo.modelview * Vec4::new(in_pos.x, in_pos.y, in_pos.z, 1.0);
             *out_pos = Vec3::new(pos.x, pos.y, pos.z);
-            *out_position = ubo.projection * ubo.modelview * Vec4::new(in_pos.x, in_pos.y, in_pos.z, 1.0);
+            *out_position =
+                ubo.projection * ubo.modelview * Vec4::new(in_pos.x, in_pos.y, in_pos.z, 1.0);
         }
     }
 
@@ -73,11 +76,13 @@ pub fn main_fs(
     out_color1: &mut Vec4,
 ) {
     let color = match type_id as i32 {
-        0 => { // Skybox
+        0 => {
+            // Skybox
             let normal = in_uvw.normalize();
             image_env_map.sample(*sampler_env_map, normal)
         }
-        1 => { // Reflect
+        1 => {
+            // Reflect
             let w_view_vec = Mat3::from_mat4(ubo.inverse_modelview) * in_view_vec.normalize();
             let normal = in_normal.normalize();
             let w_normal = Mat3::from_mat4(ubo.inverse_modelview) * normal;
@@ -113,16 +118,17 @@ pub fn main_fs(
                 env_color.x * n_dot_l * (K + spec * (1.0 - K)),
                 env_color.y * n_dot_l * (K + spec * (1.0 - K)),
                 env_color.z * n_dot_l * (K + spec * (1.0 - K)),
-                1.0
+                1.0,
             )
         }
-        2 => { // Refract
+        2 => {
+            // Refract
             let w_view_vec = Mat3::from_mat4(ubo.inverse_modelview) * in_view_vec.normalize();
             let w_normal = Mat3::from_mat4(ubo.inverse_modelview) * in_normal;
             let refract_vec = -w_view_vec.refract(w_normal, 1.0 / 1.6);
             image_env_map.sample(*sampler_env_map, refract_vec)
         }
-        _ => Vec4::new(1.0, 0.0, 1.0, 1.0)
+        _ => Vec4::new(1.0, 0.0, 1.0, 1.0),
     };
 
     // Color with manual exposure into attachment 0

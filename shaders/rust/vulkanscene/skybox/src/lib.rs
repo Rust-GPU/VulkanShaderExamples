@@ -1,7 +1,11 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{vec4, Mat3, Mat4, Vec3, Vec4}, image::{SampledImage, Cubemap}};
+use spirv_std::{
+    glam::{vec4, Mat3, Mat4, Vec3, Vec4},
+    image::{Cubemap, SampledImage},
+    spirv,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]

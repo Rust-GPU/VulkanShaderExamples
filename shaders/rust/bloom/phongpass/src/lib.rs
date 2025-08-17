@@ -2,8 +2,8 @@
 
 use spirv_std::{
     glam::{Mat3, Mat4, Vec2, Vec3, Vec4},
-    spirv,
     num_traits::Float,
+    spirv,
 };
 
 #[repr(C)]
@@ -51,8 +51,8 @@ pub fn main_fs(
     out_frag_color: &mut Vec4,
 ) {
     let mut ambient = Vec3::ZERO;
-    
-    // Adjust light calculations for glow color 
+
+    // Adjust light calculations for glow color
     if in_color.x >= 0.9 || in_color.y >= 0.9 || in_color.z >= 0.9 {
         ambient = in_color * 0.25;
     }
@@ -63,11 +63,11 @@ pub fn main_fs(
     let r = (-l).reflect(n);
     let diffuse = n.dot(l).max(0.0) * in_color;
     let specular = r.dot(v).max(0.0).powf(8.0) * Vec3::new(0.75, 0.75, 0.75);
-    
+
     *out_frag_color = Vec4::new(
         ambient.x + diffuse.x + specular.x,
         ambient.y + diffuse.y + specular.y,
         ambient.z + diffuse.z + specular.z,
-        1.0
+        1.0,
     );
 }

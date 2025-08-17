@@ -1,9 +1,9 @@
 #![no_std]
 
-use spirv_std::spirv;
-use spirv_std::glam::{IVec2, UVec3, Vec2, Vec3, Vec4, Vec4Swizzles, Mat4};
-use spirv_std::{Image, Sampler};
+use spirv_std::glam::{IVec2, Mat4, UVec3, Vec2, Vec3, Vec4, Vec4Swizzles};
 use spirv_std::num_traits::Float;
+use spirv_std::spirv;
+use spirv_std::{Image, Sampler};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -60,59 +60,99 @@ pub fn main_cs(
     if index >= particle_count_x * particle_count_y {
         return;
     }
-    
+
     // Initial force from gravity
     let mut force = ubo.gravity.xyz() * ubo.particle_mass;
-    
+
     let idx = index as usize;
     let pos = particle_in[idx].pos.xyz();
     let vel = particle_in[idx].vel.xyz();
-    
+
     // Spring forces from neighboring particles
     // left
     if id.x > 0 {
-        force += spring_force(particle_in[idx - 1].pos.xyz(), pos, ubo.rest_dist_h, ubo.spring_stiffness);
+        force += spring_force(
+            particle_in[idx - 1].pos.xyz(),
+            pos,
+            ubo.rest_dist_h,
+            ubo.spring_stiffness,
+        );
     }
     // right
     if id.x < particle_count_x - 1 {
-        force += spring_force(particle_in[idx + 1].pos.xyz(), pos, ubo.rest_dist_h, ubo.spring_stiffness);
+        force += spring_force(
+            particle_in[idx + 1].pos.xyz(),
+            pos,
+            ubo.rest_dist_h,
+            ubo.spring_stiffness,
+        );
     }
     // upper
     if id.y < particle_count_y - 1 {
-        force += spring_force(particle_in[idx + particle_count_x as usize].pos.xyz(), pos, ubo.rest_dist_v, ubo.spring_stiffness);
+        force += spring_force(
+            particle_in[idx + particle_count_x as usize].pos.xyz(),
+            pos,
+            ubo.rest_dist_v,
+            ubo.spring_stiffness,
+        );
     }
     // lower
     if id.y > 0 {
-        force += spring_force(particle_in[idx - particle_count_x as usize].pos.xyz(), pos, ubo.rest_dist_v, ubo.spring_stiffness);
+        force += spring_force(
+            particle_in[idx - particle_count_x as usize].pos.xyz(),
+            pos,
+            ubo.rest_dist_v,
+            ubo.spring_stiffness,
+        );
     }
     // upper-left
     if id.x > 0 && id.y < particle_count_y - 1 {
-        force += spring_force(particle_in[idx + particle_count_x as usize - 1].pos.xyz(), pos, ubo.rest_dist_d, ubo.spring_stiffness);
+        force += spring_force(
+            particle_in[idx + particle_count_x as usize - 1].pos.xyz(),
+            pos,
+            ubo.rest_dist_d,
+            ubo.spring_stiffness,
+        );
     }
     // lower-left
     if id.x > 0 && id.y > 0 {
-        force += spring_force(particle_in[idx - particle_count_x as usize - 1].pos.xyz(), pos, ubo.rest_dist_d, ubo.spring_stiffness);
+        force += spring_force(
+            particle_in[idx - particle_count_x as usize - 1].pos.xyz(),
+            pos,
+            ubo.rest_dist_d,
+            ubo.spring_stiffness,
+        );
     }
     // upper-right
     if id.x < particle_count_x - 1 && id.y < particle_count_y - 1 {
-        force += spring_force(particle_in[idx + particle_count_x as usize + 1].pos.xyz(), pos, ubo.rest_dist_d, ubo.spring_stiffness);
+        force += spring_force(
+            particle_in[idx + particle_count_x as usize + 1].pos.xyz(),
+            pos,
+            ubo.rest_dist_d,
+            ubo.spring_stiffness,
+        );
     }
     // lower-right
     if id.x < particle_count_x - 1 && id.y > 0 {
-        force += spring_force(particle_in[idx - particle_count_x as usize + 1].pos.xyz(), pos, ubo.rest_dist_d, ubo.spring_stiffness);
+        force += spring_force(
+            particle_in[idx - particle_count_x as usize + 1].pos.xyz(),
+            pos,
+            ubo.rest_dist_d,
+            ubo.spring_stiffness,
+        );
     }
-    
+
     // Damping
     force += -ubo.damping * vel;
-    
+
     // Integrate
     let f = force * (1.0 / ubo.particle_mass);
     let new_pos = pos + vel * ubo.delta_t + 0.5 * f * ubo.delta_t * ubo.delta_t;
     let new_vel = vel + f * ubo.delta_t;
-    
+
     particle_out[idx].pos = Vec4::new(new_pos.x, new_pos.y, new_pos.z, 1.0);
     particle_out[idx].vel = Vec4::new(new_vel.x, new_vel.y, new_vel.z, 0.0);
-    
+
     // Sphere collision
     let sphere_dist = new_pos - ubo.sphere_pos.xyz();
     if sphere_dist.length() < ubo.sphere_radius + 0.01 {
@@ -122,11 +162,11 @@ pub fn main_cs(
         // Cancel out velocity
         particle_out[idx].vel = Vec4::ZERO;
     }
-    
+
     // Calculate normals
     if push_consts.calculate_normals == 1 {
         let mut normal = Vec3::ZERO;
-        
+
         let stride = particle_count_x as usize;
         if id.y > 0 {
             if id.x > 0 {
@@ -156,13 +196,13 @@ pub fn main_cs(
                 normal += a.cross(b) + b.cross(c);
             }
         }
-        
+
         if normal.length() > 0.0 {
             normal = normal.normalize();
         }
         particle_out[idx].normal = Vec4::new(normal.x, normal.y, normal.z, 0.0);
     }
-    
+
     // Copy UV coordinates
     particle_out[idx].uv = particle_in[idx].uv;
 }
@@ -221,6 +261,6 @@ pub fn main_fs(
         diffuse.x * color.x + specular.x,
         diffuse.y * color.y + specular.y,
         diffuse.z * color.z + specular.z,
-        1.0
+        1.0,
     );
 }

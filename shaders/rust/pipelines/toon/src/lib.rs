@@ -1,8 +1,12 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{mat3, vec3, vec4, Mat4, Vec3, Vec4}, Image, num_traits::Float};
 use spirv_std::image::SampledImage;
+use spirv_std::{
+    glam::{mat3, vec3, vec4, Mat4, Vec3, Vec4},
+    num_traits::Float,
+    spirv, Image,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -27,7 +31,7 @@ pub fn main_vs(
     *out_normal = in_normal;
     *out_color = in_color;
     *out_position = ubo.projection * ubo.model * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
-    
+
     let pos = ubo.model * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
     let model_mat3 = mat3(
         ubo.model.x_axis.truncate(),
@@ -46,13 +50,15 @@ pub fn main_fs(
     in_color: Vec3,
     in_view_vec: Vec3,
     in_light_vec: Vec3,
-    #[spirv(descriptor_set = 0, binding = 1)] _color_sampler: &SampledImage<Image!(2D, type=f32, sampled)>,
+    #[spirv(descriptor_set = 0, binding = 1)] _color_sampler: &SampledImage<
+        Image!(2D, type=f32, sampled),
+    >,
     out_frag_color: &mut Vec4,
 ) {
     // Desaturate color
     let desaturated = vec3(0.2126, 0.7152, 0.0722).dot(in_color);
     let color = in_color.lerp(vec3(desaturated, desaturated, desaturated), 0.65);
-    
+
     // High ambient colors because mesh materials are pretty dark
     let ambient = color * vec3(1.0, 1.0, 1.0);
     let n = in_normal.normalize();
@@ -61,17 +67,25 @@ pub fn main_fs(
     let r = (-l).reflect(n);
     let diffuse = n.dot(l).max(0.0) * color;
     let specular = r.dot(v).max(0.0).powf(16.0) * vec3(0.75, 0.75, 0.75);
-    
+
     let mut result = ambient + diffuse * 1.75 + specular;
-    
+
     // Toon shading effect
     let intensity = n.dot(l);
     let mut shade = 1.0;
-    if intensity < 0.5 { shade = 0.75; }
-    if intensity < 0.35 { shade = 0.6; }
-    if intensity < 0.25 { shade = 0.5; }
-    if intensity < 0.1 { shade = 0.25; }
-    
+    if intensity < 0.5 {
+        shade = 0.75;
+    }
+    if intensity < 0.35 {
+        shade = 0.6;
+    }
+    if intensity < 0.25 {
+        shade = 0.5;
+    }
+    if intensity < 0.1 {
+        shade = 0.25;
+    }
+
     result = in_color * 3.0 * shade;
     *out_frag_color = vec4(result.x, result.y, result.z, 1.0);
 }

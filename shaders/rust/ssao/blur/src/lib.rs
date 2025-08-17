@@ -22,7 +22,7 @@ pub fn main_fs(
     let mut n = 0;
     let texel_size = ubo.texel_size;
     let mut result = 0.0;
-    
+
     for x in -BLUR_RANGE..=BLUR_RANGE {
         for y in -BLUR_RANGE..=BLUR_RANGE {
             let offset = vec2(x as f32, y as f32) * texel_size;
@@ -30,6 +30,6 @@ pub fn main_fs(
             n += 1;
         }
     }
-    
+
     *out_frag_color = result / n as f32;
 }

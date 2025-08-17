@@ -1,7 +1,10 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{mat3, vec4, Mat4, Vec3, Vec4}};
+use spirv_std::{
+    glam::{mat3, vec4, Mat4, Vec3, Vec4},
+    spirv,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -29,7 +32,7 @@ pub fn main_vs(
     let pos = vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
 
     *out_position = ubo.projection * ubo.model * pos;
-    
+
     let world_pos = ubo.model * pos;
     let model_mat3 = mat3(
         ubo.model.x_axis.truncate(),
@@ -40,7 +43,7 @@ pub fn main_vs(
     let l_pos = ubo.light_pos.truncate();
     *out_light_vec = l_pos - world_pos.truncate();
     *out_view_vec = -world_pos.truncate();
-    
+
     // Flat shading normal is not interpolated
     *out_flat_normal = *out_normal;
 }

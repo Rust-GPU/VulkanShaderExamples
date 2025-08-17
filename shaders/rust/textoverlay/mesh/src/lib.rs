@@ -1,7 +1,11 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{mat3, vec3, vec4, Mat4, Vec2, Vec3, Vec4}, num_traits::Float};
+use spirv_std::{
+    glam::{mat3, vec3, vec4, Mat4, Vec2, Vec3, Vec4},
+    num_traits::Float,
+    spirv,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -26,10 +30,17 @@ pub fn main_vs(
     *out_normal = in_normal;
     *out_uv = in_uv;
     *out_position = ubo.projection * ubo.model * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
-    
+
     let pos = ubo.model * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
     let normalized_normal = in_normal.normalize();
-    *out_normal = (ubo.model.inverse().transpose() * vec4(normalized_normal.x, normalized_normal.y, normalized_normal.z, 0.0)).truncate();
+    *out_normal = (ubo.model.inverse().transpose()
+        * vec4(
+            normalized_normal.x,
+            normalized_normal.y,
+            normalized_normal.z,
+            0.0,
+        ))
+    .truncate();
     let model_mat3 = mat3(
         ubo.model.x_axis.truncate(),
         ubo.model.y_axis.truncate(),

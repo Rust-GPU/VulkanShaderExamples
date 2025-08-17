@@ -1,7 +1,11 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{vec2, vec4, Vec2, Vec4}, Image, image::SampledImage};
+use spirv_std::{
+    glam::{vec2, vec4, Vec2, Vec4},
+    image::SampledImage,
+    spirv, Image,
+};
 
 #[spirv(vertex)]
 pub fn main_vs(
@@ -9,22 +13,16 @@ pub fn main_vs(
     #[spirv(position)] out_position: &mut Vec4,
     out_uv: &mut Vec2,
 ) {
-    *out_uv = vec2(
-        ((vert_idx << 1) & 2) as f32,
-        (vert_idx & 2) as f32,
-    );
-    *out_position = vec4(
-        out_uv.x * 2.0 - 1.0,
-        out_uv.y * 2.0 - 1.0,
-        0.0,
-        1.0,
-    );
+    *out_uv = vec2(((vert_idx << 1) & 2) as f32, (vert_idx & 2) as f32);
+    *out_position = vec4(out_uv.x * 2.0 - 1.0, out_uv.y * 2.0 - 1.0, 0.0, 1.0);
 }
 
 #[spirv(fragment)]
 pub fn main_fs(
     in_uv: Vec2,
-    #[spirv(descriptor_set = 0, binding = 1)] sampler_color: &SampledImage<Image!(2D, type=f32, sampled)>,
+    #[spirv(descriptor_set = 0, binding = 1)] sampler_color: &SampledImage<
+        Image!(2D, type=f32, sampled),
+    >,
     out_frag_color: &mut Vec4,
 ) {
     // Single pass gauss blur
@@ -50,9 +48,16 @@ pub fn main_fs(
     let col7: Vec4 = sampler_color.sample(tc7);
     let col8: Vec4 = sampler_color.sample(tc8);
 
-    let sum = (1.0 * col0 + 2.0 * col1 + 1.0 * col2 +
-               2.0 * col3 + 4.0 * col4 + 2.0 * col5 +
-               1.0 * col6 + 2.0 * col7 + 1.0 * col8) / 16.0;
-    
+    let sum = (1.0 * col0
+        + 2.0 * col1
+        + 1.0 * col2
+        + 2.0 * col3
+        + 4.0 * col4
+        + 2.0 * col5
+        + 1.0 * col6
+        + 2.0 * col7
+        + 1.0 * col8)
+        / 16.0;
+
     *out_frag_color = vec4(sum.x, sum.y, sum.z, 1.0);
 }

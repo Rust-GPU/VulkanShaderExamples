@@ -23,9 +23,6 @@ pub fn main_vs(
 }
 
 #[spirv(fragment)]
-pub fn main_fs(
-    in_color: Vec3,
-    out_frag_color: &mut Vec4,
-) {
+pub fn main_fs(in_color: Vec3, out_frag_color: &mut Vec4) {
     *out_frag_color = Vec4::new(in_color.x, in_color.y, in_color.z, 1.0);
 }

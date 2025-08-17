@@ -37,14 +37,14 @@ pub fn main_gs(
 ) {
     let instance_index = in_instance_index[0];
     let instanced_pos = ubo.instance_pos[instance_index as usize];
-    
+
     for i in 0..3 {
         let tmp_pos = in_position[i] + instanced_pos;
         *out_position = ubo.mvp[invocation_id as usize] * tmp_pos;
         *out_layer = invocation_id;
-        
+
         unsafe { spirv_std::arch::emit_vertex() };
     }
-    
+
     unsafe { spirv_std::arch::end_primitive() };
 }

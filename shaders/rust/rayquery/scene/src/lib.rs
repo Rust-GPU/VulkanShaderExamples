@@ -2,8 +2,11 @@
 #![allow(clippy::missing_safety_doc)]
 #![feature(asm_experimental_arch)]
 
-use spirv_std::{spirv, glam::{vec4, Mat3, Mat4, Vec2, Vec3, Vec4}};
-use spirv_std::ray_tracing::{AccelerationStructure, RayFlags, RayQuery, CommittedIntersection};
+use spirv_std::ray_tracing::{AccelerationStructure, CommittedIntersection, RayFlags, RayQuery};
+use spirv_std::{
+    glam::{vec4, Mat3, Mat4, Vec2, Vec3, Vec4},
+    spirv,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -57,9 +60,9 @@ pub fn main_fs(
     let n = in_normal.normalize();
     let l = in_light_vec.normalize();
     let diffuse = n.dot(l).max(AMBIENT) * in_color;
-    
+
     *out_frag_color = vec4(diffuse.x, diffuse.y, diffuse.z, 1.0);
-    
+
     unsafe {
         spirv_std::ray_query!(let mut ray_query);
         ray_query.initialize(
@@ -69,12 +72,12 @@ pub fn main_fs(
             in_world_pos,
             0.01,
             l,
-            1000.0
+            1000.0,
         );
-        
+
         // Traverse the acceleration structure
         ray_query.proceed();
-        
+
         // If the intersection has hit a triangle, the fragment is shadowed
         if ray_query.get_committed_intersection_type() == CommittedIntersection::Triangle {
             *out_frag_color *= 0.1;

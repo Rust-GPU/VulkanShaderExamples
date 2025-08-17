@@ -30,7 +30,8 @@ pub fn main_vs(
 ) {
     *out_uv = in_uv;
     let pos = in_pos + push_consts.position.xyz();
-    *out_position = ubo.cascade_view_proj_mat[push_consts.cascade_index as usize] * Vec4::from((pos, 1.0));
+    *out_position =
+        ubo.cascade_view_proj_mat[push_consts.cascade_index as usize] * Vec4::from((pos, 1.0));
 }
 
 #[spirv(fragment)]

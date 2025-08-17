@@ -1,8 +1,8 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 
 use spirv_std::glam::{vec3, vec4, Mat4, Vec2, Vec3, Vec4};
-use spirv_std::{spirv, num_traits::Float};
-use spirv_std::image::{SampledImage, Cubemap};
+use spirv_std::image::{Cubemap, SampledImage};
+use spirv_std::{num_traits::Float, spirv};
 
 // UBO structure for skybox matrices
 #[derive(Copy, Clone)]
@@ -16,9 +16,9 @@ pub struct UBO {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct UBOParams {
-    lights: [Vec4; 4],  // offset 0, size 64
-    exposure: f32,      // offset 64
-    gamma: f32,         // offset 68
+    lights: [Vec4; 4], // offset 0, size 64
+    exposure: f32,     // offset 64
+    gamma: f32,        // offset 68
 }
 
 #[spirv(vertex)]
@@ -42,7 +42,7 @@ fn uncharted2_tonemap(color: Vec3) -> Vec3 {
     let d = 0.20;
     let e = 0.02;
     let f = 0.30;
-    
+
     ((color * (a * color + c * b) + d * e) / (color * (a * color + b) + d * f)) - e / f
 }
 
@@ -54,15 +54,19 @@ pub fn main_fs(
     out_color: &mut Vec4,
 ) {
     let mut color = sampler_env.sample(in_uvw).truncate();
-    
+
     // Tone mapping
     color = uncharted2_tonemap(color * ubo_params.exposure);
     let white_scale = Vec3::ONE / uncharted2_tonemap(Vec3::splat(11.2));
     color = color * white_scale;
-    
+
     // Gamma correction
     let inv_gamma = 1.0 / ubo_params.gamma;
-    color = vec3(color.x.powf(inv_gamma), color.y.powf(inv_gamma), color.z.powf(inv_gamma));
-    
+    color = vec3(
+        color.x.powf(inv_gamma),
+        color.y.powf(inv_gamma),
+        color.z.powf(inv_gamma),
+    );
+
     *out_color = vec4(color.x, color.y, color.z, 1.0);
 }

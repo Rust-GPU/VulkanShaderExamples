@@ -29,14 +29,14 @@ pub fn main_vs(
 ) {
     *out_position = ubo.projection * ubo.view * ubo.model * in_pos;
     *out_uv = in_uv;
-    
+
     // Vertex position in view space
     *out_pos = (ubo.view * ubo.model * in_pos).truncate();
-    
+
     // Normal in view space
     let normal_matrix = Mat3::from_mat4(ubo.view * ubo.model);
     *out_normal = normal_matrix * in_normal;
-    
+
     *out_color = in_color;
 }
 
@@ -57,8 +57,14 @@ pub fn main_fs(
     let depth = linear_depth(frag_coord.z, ubo.near_plane, ubo.far_plane);
     *out_position = vec4(in_pos.x, in_pos.y, in_pos.z, depth);
     let normalized_normal = in_normal.normalize() * 0.5 + 0.5;
-    *out_normal = vec4(normalized_normal.x, normalized_normal.y, normalized_normal.z, 1.0);
-    *out_albedo = texture_colormap.sample(*sampler_colormap, in_uv) * vec4(in_color.x, in_color.y, in_color.z, 1.0);
+    *out_normal = vec4(
+        normalized_normal.x,
+        normalized_normal.y,
+        normalized_normal.z,
+        1.0,
+    );
+    *out_albedo = texture_colormap.sample(*sampler_colormap, in_uv)
+        * vec4(in_color.x, in_color.y, in_color.z, 1.0);
 }
 
 fn linear_depth(depth: f32, near_plane: f32, far_plane: f32) -> f32 {

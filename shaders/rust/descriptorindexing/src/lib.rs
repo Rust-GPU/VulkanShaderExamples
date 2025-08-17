@@ -1,8 +1,11 @@
 #![no_std]
 
-use spirv_std::spirv;
-use spirv_std::{glam::{vec4, Mat4, Vec2, Vec3, Vec4}, Image, RuntimeArray};
 use spirv_std::image::SampledImage;
+use spirv_std::spirv;
+use spirv_std::{
+    glam::{vec4, Mat4, Vec2, Vec3, Vec4},
+    Image, RuntimeArray,
+};
 
 #[repr(C)]
 pub struct Matrices {
@@ -32,7 +35,9 @@ pub fn main_vs(
 pub fn main_fs(
     in_uv: Vec2,
     #[spirv(flat)] in_tex_index: i32,
-    #[spirv(descriptor_set = 0, binding = 1)] textures: &RuntimeArray<SampledImage<Image!(2D, type=f32, sampled)>>,
+    #[spirv(descriptor_set = 0, binding = 1)] textures: &RuntimeArray<
+        SampledImage<Image!(2D, type=f32, sampled)>,
+    >,
     out_frag_color: &mut Vec4,
 ) {
     unsafe {

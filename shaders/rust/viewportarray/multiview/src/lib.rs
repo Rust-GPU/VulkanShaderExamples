@@ -1,7 +1,10 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{Mat3, Mat4, Vec3, Vec4}};
+use spirv_std::{
+    glam::{Mat3, Mat4, Vec3, Vec4},
+    spirv,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -28,26 +31,26 @@ pub fn main_gs(
     #[spirv(primitive_id, flat)] out_primitive_id: &mut u32,
 ) {
     let inv_id = invocation_id as usize;
-    
+
     for i in 0..3 {
         *out_normal = Mat3::from_mat4(ubo.modelview[inv_id]) * in_normal[i];
         *out_color = in_color[i];
-        
+
         let pos = in_position[i];
         let world_pos = ubo.modelview[inv_id] * pos;
-        
+
         let l_pos = (ubo.modelview[inv_id] * ubo.light_pos).truncate();
         *out_light_vec = l_pos - world_pos.truncate();
         *out_view_vec = -world_pos.truncate();
-        
+
         *out_position = ubo.projection[inv_id] * world_pos;
-        
+
         // Set the viewport index that the vertex will be emitted to
         *out_viewport_index = invocation_id;
         *out_primitive_id = primitive_id_in;
-        
+
         unsafe { spirv_std::arch::emit_vertex() };
     }
-    
+
     unsafe { spirv_std::arch::end_primitive() };
 }

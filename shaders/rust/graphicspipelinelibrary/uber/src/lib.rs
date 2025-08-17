@@ -1,7 +1,11 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{vec3, vec4, Vec3, Vec4}, num_traits::Float};
+use spirv_std::{
+    glam::{vec3, vec4, Vec3, Vec4},
+    num_traits::Float,
+    spirv,
+};
 
 #[spirv(fragment)]
 pub fn main_fs(
@@ -14,7 +18,8 @@ pub fn main_fs(
     out_frag_color: &mut Vec4,
 ) {
     let mut color = match lighting_model {
-        0 => { // Phong
+        0 => {
+            // Phong
             let ambient = in_color * vec3(0.25, 0.25, 0.25);
             let n = in_normal.normalize();
             let l = in_light_vec.normalize();
@@ -24,7 +29,8 @@ pub fn main_fs(
             let specular = r.dot(v).max(0.0).powf(32.0) * vec3(0.75, 0.75, 0.75);
             ambient + diffuse * 1.75 + specular
         }
-        1 => { // Toon
+        1 => {
+            // Toon
             let n = in_normal.normalize();
             let l = in_light_vec.normalize();
             let intensity = n.dot(l);
@@ -40,10 +46,12 @@ pub fn main_fs(
                 in_color * 0.2
             }
         }
-        2 => { // No shading
+        2 => {
+            // No shading
             in_color
         }
-        3 => { // Greyscale
+        3 => {
+            // Greyscale
             let grey = in_color.x * 0.299 + in_color.y * 0.587 + in_color.z * 0.114;
             vec3(grey, grey, grey)
         }
@@ -52,6 +60,6 @@ pub fn main_fs(
 
     // Scene is dark, brighten up a bit
     color *= 1.25;
-    
+
     *out_frag_color = vec4(color.x, color.y, color.z, 1.0);
 }

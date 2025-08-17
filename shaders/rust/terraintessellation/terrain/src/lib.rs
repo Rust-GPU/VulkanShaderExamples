@@ -47,7 +47,8 @@ fn screen_space_tess_factor(p0: Vec4, p1: Vec4, ubo: &UBO) -> f32 {
     let clip0_vp = clip0.xy() * ubo.viewport_dim;
     let clip1_vp = clip1.xy() * ubo.viewport_dim;
 
-    (clip0_vp.distance(clip1_vp) / ubo.tessellated_edge_size * ubo.tessellation_factor).clamp(1.0, 64.0)
+    (clip0_vp.distance(clip1_vp) / ubo.tessellated_edge_size * ubo.tessellation_factor)
+        .clamp(1.0, 64.0)
 }
 
 fn frustum_check(
@@ -85,7 +86,13 @@ pub fn main_tcs(
     #[spirv(tess_level_outer)] tess_level_outer: &mut [f32; 4],
 ) {
     if invocation_id == 0 {
-        if !frustum_check(in_position[invocation_id as usize], in_uv[0], ubo, sampler_height, sampler) {
+        if !frustum_check(
+            in_position[invocation_id as usize],
+            in_uv[0],
+            ubo,
+            sampler_height,
+            sampler,
+        ) {
             tess_level_inner[0] = 0.0;
             tess_level_inner[1] = 0.0;
             tess_level_outer[0] = 0.0;
@@ -145,9 +152,9 @@ pub fn main_tes(
     let pos1 = in_position[0].lerp(in_position[1], tess_coord.x);
     let pos2 = in_position[3].lerp(in_position[2], tess_coord.x);
     let mut pos = pos1.lerp(pos2, tess_coord.y);
-    
+
     pos.y -= displacement_map.sample_by_lod(*sampler, *out_uv, 0.0).x * ubo.displacement_factor;
-    
+
     *out_position = ubo.projection * ubo.modelview * pos;
 
     *out_view_vec = -pos.xyz();
@@ -172,14 +179,17 @@ fn sample_terrain_layer(
     ];
 
     let mut color = Vec3::ZERO;
-    
+
     let height = sampler_height.sample_by_lod(*sampler, uv, 0.0).x * 255.0;
-    
+
     for i in 0..6 {
         let range = layers[i].y - layers[i].x;
         let weight = ((range - (height - layers[i].y).abs()) / range).max(0.0);
         let tex_coord = uv * 16.0;
-        color += weight * sampler_layers.sample(*sampler, vec3(tex_coord.x, tex_coord.y, i as f32)).xyz();
+        color += weight
+            * sampler_layers
+                .sample(*sampler, vec3(tex_coord.x, tex_coord.y, i as f32))
+                .xyz();
     }
 
     color
@@ -211,7 +221,10 @@ pub fn main_fs(
     let ambient = Vec3::splat(0.5);
     let diffuse = n.dot(l).max(0.0) * Vec3::ONE;
 
-    let color = Vec4::from(((ambient + diffuse) * sample_terrain_layer(in_uv, sampler_height, sampler_layers, sampler), 1.0));
+    let color = Vec4::from((
+        (ambient + diffuse) * sample_terrain_layer(in_uv, sampler_height, sampler_layers, sampler),
+        1.0,
+    ));
 
     const FOG_COLOR: Vec4 = Vec4::new(0.47, 0.5, 0.67, 0.0);
     *out_frag_color = color.lerp(FOG_COLOR, fog(frag_coord.z / frag_coord.w));

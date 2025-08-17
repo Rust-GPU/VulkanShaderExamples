@@ -1,7 +1,7 @@
 #![no_std]
 
+use spirv_std::glam::{Mat4, Vec3, Vec4, Vec4Swizzles};
 use spirv_std::spirv;
-use spirv_std::glam::{Vec3, Vec4, Mat4, Vec4Swizzles};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -28,17 +28,16 @@ pub fn main_vs(
     out_pos: &mut Vec4,
     out_light_pos: &mut Vec3,
 ) {
-    *out_position = ubo.projection * push_consts.view * ubo.model * Vec4::new(in_pos.x, in_pos.y, in_pos.z, 1.0);
+    *out_position = ubo.projection
+        * push_consts.view
+        * ubo.model
+        * Vec4::new(in_pos.x, in_pos.y, in_pos.z, 1.0);
     *out_pos = Vec4::new(in_pos.x, in_pos.y, in_pos.z, 1.0);
     *out_light_pos = ubo.light_pos.xyz();
 }
 
 #[spirv(fragment)]
-pub fn main_fs(
-    in_pos: Vec4,
-    in_light_pos: Vec3,
-    out_frag_color: &mut f32,
-) {
+pub fn main_fs(in_pos: Vec4, in_light_pos: Vec3, out_frag_color: &mut f32) {
     // Store distance to light as 32 bit float value
     let light_vec = in_pos.xyz() - in_light_pos;
     *out_frag_color = light_vec.length();

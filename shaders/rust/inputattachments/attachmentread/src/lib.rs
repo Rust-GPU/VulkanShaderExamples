@@ -1,7 +1,10 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{vec4, Vec2, Vec3, Vec4}};
+use spirv_std::{
+    glam::{vec4, Vec2, Vec3, Vec4},
+    spirv,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -12,10 +15,7 @@ pub struct Ubo {
 }
 
 #[spirv(vertex)]
-pub fn main_vs(
-    #[spirv(vertex_index)] vert_idx: i32,
-    #[spirv(position)] out_position: &mut Vec4,
-) {
+pub fn main_vs(#[spirv(vertex_index)] vert_idx: i32, #[spirv(position)] out_position: &mut Vec4) {
     let x = ((vert_idx << 1) & 2) as f32;
     let y = (vert_idx & 2) as f32;
     *out_position = vec4(x * 2.0 - 1.0, y * 2.0 - 1.0, 0.0, 1.0);
@@ -34,15 +34,16 @@ pub fn main_fs(
     out_color: &mut Vec4,
 ) {
     let coord = spirv_std::glam::IVec2::new(frag_coord.x as i32, frag_coord.y as i32);
-    
+
     // Apply brightness and contrast filter to color input
     if ubo.attachment_index == 0 {
         // Read color from previous color input attachment
         let color = input_color.read_subpass(coord).truncate();
-        let adjusted = brightness_contrast(color, ubo.brightness_contrast.x, ubo.brightness_contrast.y);
+        let adjusted =
+            brightness_contrast(color, ubo.brightness_contrast.x, ubo.brightness_contrast.y);
         *out_color = vec4(adjusted.x, adjusted.y, adjusted.z, 1.0);
     }
-    
+
     // Visualize depth input range
     if ubo.attachment_index == 1 {
         // Read depth from previous depth input attachment

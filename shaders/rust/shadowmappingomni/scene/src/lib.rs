@@ -1,7 +1,7 @@
 #![no_std]
 
+use spirv_std::glam::{Mat4, Vec3, Vec4, Vec4Swizzles};
 use spirv_std::spirv;
-use spirv_std::glam::{Vec3, Vec4, Mat4, Vec4Swizzles};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -29,12 +29,13 @@ pub fn main_vs(
 ) {
     *out_color = in_color;
     *out_normal = in_normal;
-    
-    *out_position = ubo.projection * ubo.view * ubo.model * Vec4::new(in_pos.x, in_pos.y, in_pos.z, 1.0);
+
+    *out_position =
+        ubo.projection * ubo.view * ubo.model * Vec4::new(in_pos.x, in_pos.y, in_pos.z, 1.0);
     *out_eye_pos = (ubo.model * Vec4::new(in_pos.x, in_pos.y, in_pos.z, 1.0)).xyz();
     *out_light_vec = (ubo.light_pos.xyz() - in_pos).normalize();
     *out_world_pos = in_pos;
-    
+
     *out_light_pos = ubo.light_pos.xyz();
 }
 
@@ -52,21 +53,25 @@ pub fn main_fs(
 ) {
     const EPSILON: f32 = 0.15;
     const SHADOW_OPACITY: f32 = 0.5;
-    
+
     // Lighting
     let i_ambient = Vec4::new(0.05, 0.05, 0.05, 1.0);
     let i_diffuse = Vec4::ONE * in_normal.dot(in_light_vec).max(0.0);
-    
+
     *out_frag_color = i_ambient + i_diffuse * Vec4::new(in_color.x, in_color.y, in_color.z, 1.0);
-    
+
     // Shadow
     let light_vec = in_world_pos - in_light_pos;
     let sampled_dist: Vec4 = shadow_cube_map.sample_by_lod(*sampler, light_vec, 0.0);
     let dist = light_vec.length();
-    
+
     // Check if fragment is in shadow
-    let shadow = if dist <= sampled_dist.x + EPSILON { 1.0 } else { SHADOW_OPACITY };
-    
+    let shadow = if dist <= sampled_dist.x + EPSILON {
+        1.0
+    } else {
+        SHADOW_OPACITY
+    };
+
     out_frag_color.x *= shadow;
     out_frag_color.y *= shadow;
     out_frag_color.z *= shadow;

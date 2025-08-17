@@ -37,7 +37,7 @@ pub fn main_vs(
     let _loc_pos = (ubo.modelview * Vec4::from((in_pos, 1.0))).xyz();
     let world_pos = (ubo.modelview * Vec4::from((in_pos + push_consts.obj_pos, 1.0))).xyz();
     *out_position = ubo.projection * Vec4::from((world_pos, 1.0));
-    
+
     let pos = ubo.modelview * Vec4::from((world_pos, 1.0));
     *out_normal = Mat3::from_mat4(ubo.modelview) * in_normal;
     *out_light_vec = ubo.light_pos.xyz() - pos.xyz();
@@ -89,18 +89,17 @@ pub fn main_tes(
     out_view_vec: &mut Vec3,
     out_light_vec: &mut Vec3,
 ) {
-    *out_position = tess_coord.x * in_position[2] +
-                    tess_coord.y * in_position[1] +
-                    tess_coord.z * in_position[0];
-    *out_normal = tess_coord.x * in_normal[2] + 
-                  tess_coord.y * in_normal[1] + 
-                  tess_coord.z * in_normal[0];
-    *out_view_vec = tess_coord.x * in_view_vec[2] + 
-                    tess_coord.y * in_view_vec[1] + 
-                    tess_coord.z * in_view_vec[0];
-    *out_light_vec = tess_coord.x * in_light_vec[2] + 
-                     tess_coord.y * in_light_vec[1] + 
-                     tess_coord.z * in_light_vec[0];
+    *out_position = tess_coord.x * in_position[2]
+        + tess_coord.y * in_position[1]
+        + tess_coord.z * in_position[0];
+    *out_normal =
+        tess_coord.x * in_normal[2] + tess_coord.y * in_normal[1] + tess_coord.z * in_normal[0];
+    *out_view_vec = tess_coord.x * in_view_vec[2]
+        + tess_coord.y * in_view_vec[1]
+        + tess_coord.z * in_view_vec[0];
+    *out_light_vec = tess_coord.x * in_light_vec[2]
+        + tess_coord.y * in_light_vec[1]
+        + tess_coord.z * in_light_vec[0];
     *out_color = in_color[0];
 }
 
