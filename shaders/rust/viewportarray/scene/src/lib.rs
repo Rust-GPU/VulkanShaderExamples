@@ -1,8 +1,11 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{Vec3, Vec4}};
 use spirv_std::num_traits::Float;
+use spirv_std::{
+    glam::{Vec3, Vec4},
+    spirv,
+};
 
 #[spirv(vertex)]
 pub fn main_vs(
@@ -37,6 +40,6 @@ pub fn main_fs(
         ((ambient + diffuse) * in_color + specular).x,
         ((ambient + diffuse) * in_color + specular).y,
         ((ambient + diffuse) * in_color + specular).z,
-        1.0
+        1.0,
     );
 }

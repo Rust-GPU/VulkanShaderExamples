@@ -1,7 +1,12 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{vec4, Mat3, Mat4, Vec2, Vec3, Vec4, Vec4Swizzles}, Image, image::SampledImage, num_traits::Float};
+use spirv_std::{
+    glam::{vec4, Mat3, Mat4, Vec2, Vec3, Vec4, Vec4Swizzles},
+    image::SampledImage,
+    num_traits::Float,
+    spirv, Image,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -69,7 +74,8 @@ pub fn main_fs(
     let shininess = 0.75;
     let i_specular = vec4(0.5, 0.5, 0.5, 1.0) * reflected.dot(eye).max(0.0).powf(2.0) * shininess;
 
-    *out_frag_color = (i_ambient + i_diffuse) * vec4(in_color.x, in_color.y, in_color.z, 1.0) + i_specular;
+    *out_frag_color =
+        (i_ambient + i_diffuse) * vec4(in_color.x, in_color.y, in_color.z, 1.0) + i_specular;
 
     // Some manual saturation
     if intensity > 0.95 {

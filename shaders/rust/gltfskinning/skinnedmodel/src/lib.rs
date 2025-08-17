@@ -1,8 +1,12 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{mat3, vec3, vec4, Mat4, Vec2, Vec3, Vec4}, Image, num_traits::Float};
 use spirv_std::image::SampledImage;
+use spirv_std::{
+    glam::{mat3, vec3, vec4, Mat4, Vec2, Vec3, Vec4},
+    num_traits::Float,
+    spirv, Image,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -41,14 +45,17 @@ pub fn main_vs(
     *out_uv = in_uv;
 
     // Calculate skinned matrix from weights and joint indices of the current vertex
-    let skin_mat = 
-        in_joint_weights.x * joint_matrices[in_joint_indices.x as usize] +
-        in_joint_weights.y * joint_matrices[in_joint_indices.y as usize] +
-        in_joint_weights.z * joint_matrices[in_joint_indices.z as usize] +
-        in_joint_weights.w * joint_matrices[in_joint_indices.w as usize];
+    let skin_mat = in_joint_weights.x * joint_matrices[in_joint_indices.x as usize]
+        + in_joint_weights.y * joint_matrices[in_joint_indices.y as usize]
+        + in_joint_weights.z * joint_matrices[in_joint_indices.z as usize]
+        + in_joint_weights.w * joint_matrices[in_joint_indices.w as usize];
 
-    *out_position = ubo_scene.projection * ubo_scene.view * push_consts.model * skin_mat * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
-    
+    *out_position = ubo_scene.projection
+        * ubo_scene.view
+        * push_consts.model
+        * skin_mat
+        * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
+
     // Transform normal with model and skin matrices (matching slang version)
     let model_mat3 = mat3(
         push_consts.model.x_axis.truncate(),
@@ -80,7 +87,9 @@ pub fn main_fs(
     in_uv: Vec2,
     in_view_vec: Vec3,
     in_light_vec: Vec3,
-    #[spirv(descriptor_set = 2, binding = 0)] sampler_color_map: &SampledImage<Image!(2D, type=f32, sampled)>,
+    #[spirv(descriptor_set = 2, binding = 0)] sampler_color_map: &SampledImage<
+        Image!(2D, type=f32, sampled),
+    >,
     out_frag_color: &mut Vec4,
 ) {
     let color = sampler_color_map.sample(in_uv) * vec4(in_color.x, in_color.y, in_color.z, 1.0);
@@ -91,5 +100,10 @@ pub fn main_fs(
     let r = (-l).reflect(n);
     let diffuse = n.dot(l).max(0.5) * in_color;
     let specular = v.dot(r).max(0.0).powf(16.0) * vec3(0.75, 0.75, 0.75);
-    *out_frag_color = vec4(diffuse.x * color.x + specular.x, diffuse.y * color.y + specular.y, diffuse.z * color.z + specular.z, 1.0);
+    *out_frag_color = vec4(
+        diffuse.x * color.x + specular.x,
+        diffuse.y * color.y + specular.y,
+        diffuse.z * color.z + specular.z,
+        1.0,
+    );
 }

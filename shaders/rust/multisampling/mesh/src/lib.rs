@@ -1,8 +1,12 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{mat3, vec3, vec4, Mat4, Vec2, Vec3, Vec4}, Image, num_traits::Float};
 use spirv_std::image::SampledImage;
+use spirv_std::{
+    glam::{mat3, vec3, vec4, Mat4, Vec2, Vec3, Vec4},
+    num_traits::Float,
+    spirv, Image,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -50,7 +54,9 @@ pub fn main_fs(
     in_uv: Vec2,
     _in_view_vec: Vec3,
     in_light_vec: Vec3,
-    #[spirv(descriptor_set = 1, binding = 0)] color_sampler: &SampledImage<Image!(2D, type=f32, sampled)>,
+    #[spirv(descriptor_set = 1, binding = 0)] color_sampler: &SampledImage<
+        Image!(2D, type=f32, sampled),
+    >,
     out_frag_color: &mut Vec4,
 ) {
     let color = color_sampler.sample(in_uv) * vec4(in_color.x, in_color.y, in_color.z, 1.0);
@@ -59,9 +65,9 @@ pub fn main_fs(
     let l = in_light_vec.normalize();
     let v = _in_view_vec.normalize();
     let r = (-l).reflect(n);
-    
+
     let diffuse = n.dot(l).max(0.15) * in_color;
-    
+
     let spec_power = r.dot(v).max(0.0);
     let specular = spec_power.powf(16.0) * vec3(0.75, 0.75, 0.75);
 

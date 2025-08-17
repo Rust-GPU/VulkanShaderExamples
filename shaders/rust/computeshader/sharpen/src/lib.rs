@@ -1,7 +1,10 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{vec4, IVec2, UVec3, Vec4}, Image};
+use spirv_std::{
+    glam::{vec4, IVec2, UVec3, Vec4},
+    spirv, Image,
+};
 
 fn conv(kernel: &[f32; 9], data: &[f32; 9], denom: f32, offset: f32) -> f32 {
     let mut res = 0.0;
@@ -14,15 +17,23 @@ fn conv(kernel: &[f32; 9], data: &[f32; 9], denom: f32, offset: f32) -> f32 {
 #[spirv(compute(threads(16, 16)))]
 pub fn main_cs(
     #[spirv(global_invocation_id)] global_id: UVec3,
-    #[spirv(descriptor_set = 0, binding = 0)] input_image: &Image!(2D, format=rgba8, sampled=false),
-    #[spirv(descriptor_set = 0, binding = 1)] result_image: &Image!(2D, format=rgba8, sampled=false),
+    #[spirv(descriptor_set = 0, binding = 0)] input_image: &Image!(
+        2D,
+        format = rgba8,
+        sampled = false
+    ),
+    #[spirv(descriptor_set = 0, binding = 1)] result_image: &Image!(
+        2D,
+        format = rgba8,
+        sampled = false
+    ),
 ) {
     // Fetch neighbouring texels
     let mut r = [0.0; 9];
     let mut g = [0.0; 9];
     let mut b = [0.0; 9];
     let mut n = 0;
-    
+
     for i in -1..=1 {
         for j in -1..=1 {
             let coord = IVec2::new((global_id.x as i32) + i, (global_id.y as i32) + j);
@@ -33,21 +44,17 @@ pub fn main_cs(
             n += 1;
         }
     }
-    
+
     // Sharpen kernel
-    let kernel = [
-        -1.0, -1.0, -1.0,
-        -1.0,  9.0, -1.0,
-        -1.0, -1.0, -1.0,
-    ];
-    
+    let kernel = [-1.0, -1.0, -1.0, -1.0, 9.0, -1.0, -1.0, -1.0, -1.0];
+
     let res = vec4(
         conv(&kernel, &r, 1.0, 0.0),
         conv(&kernel, &g, 1.0, 0.0),
         conv(&kernel, &b, 1.0, 0.0),
-        1.0
+        1.0,
     );
-    
+
     unsafe {
         result_image.write(IVec2::new(global_id.x as i32, global_id.y as i32), res);
     }

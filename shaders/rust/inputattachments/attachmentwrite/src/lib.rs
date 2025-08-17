@@ -1,7 +1,10 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{vec3, vec4, Mat4, Vec3, Vec4}};
+use spirv_std::{
+    glam::{vec3, vec4, Mat4, Vec3, Vec4},
+    spirv,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -53,13 +56,13 @@ pub fn main_fs(
     if intensity < 0.1 {
         shade = 0.25;
     }
-    
+
     *out_color = vec4(
         in_color.x * 3.0 * shade,
         in_color.y * 3.0 * shade,
         in_color.z * 3.0 * shade,
-        1.0
+        1.0,
     );
-    
+
     // Depth attachment does not need to be explicitly written
 }

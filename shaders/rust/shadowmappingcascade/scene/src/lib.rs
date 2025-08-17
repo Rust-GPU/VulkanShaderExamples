@@ -75,7 +75,14 @@ fn texture_proj(
 
     if shadow_coord.z > -1.0 && shadow_coord.z < 1.0 {
         let dist = shadow_map
-            .sample(*sampler, vec3(shadow_coord.x + offset.x, shadow_coord.y + offset.y, cascade_index as f32))
+            .sample(
+                *sampler,
+                vec3(
+                    shadow_coord.x + offset.x,
+                    shadow_coord.y + offset.y,
+                    cascade_index as f32,
+                ),
+            )
             .x;
         if shadow_coord.w > 0.0 && dist < shadow_coord.z - bias {
             shadow = AMBIENT;
@@ -164,9 +171,20 @@ pub fn main_fs(
     let shadow_coord = (bias_mat * cascade_matrix) * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
 
     let shadow = if enable_pcf == 1 {
-        filter_pcf(shadow_coord / shadow_coord.w, cascade_index, shadow_map, shadow_sampler)
+        filter_pcf(
+            shadow_coord / shadow_coord.w,
+            cascade_index,
+            shadow_map,
+            shadow_sampler,
+        )
     } else {
-        texture_proj(shadow_coord / shadow_coord.w, vec2(0.0, 0.0), cascade_index, shadow_map, shadow_sampler)
+        texture_proj(
+            shadow_coord / shadow_coord.w,
+            vec2(0.0, 0.0),
+            cascade_index,
+            shadow_map,
+            shadow_sampler,
+        )
     };
 
     // Directional light

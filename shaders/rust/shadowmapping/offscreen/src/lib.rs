@@ -19,9 +19,7 @@ pub fn main_vs(
 }
 
 #[spirv(fragment)]
-pub fn main_fs(
-    out_color: &mut Vec4,
-) {
+pub fn main_fs(out_color: &mut Vec4) {
     // Shadow pass only writes depth, color output is not used
     *out_color = Vec4::new(1.0, 0.0, 0.0, 1.0);
 }

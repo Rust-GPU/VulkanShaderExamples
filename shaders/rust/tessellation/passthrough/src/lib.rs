@@ -1,7 +1,10 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{Mat4, Vec2, Vec3, Vec4}};
+use spirv_std::{
+    glam::{Mat4, Vec2, Vec3, Vec4},
+    spirv,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -47,17 +50,14 @@ pub fn main_tes(
     out_normal: &mut Vec3,
     out_uv: &mut Vec2,
 ) {
-    let pos = tess_coord.x * in_position[0] + 
-              tess_coord.y * in_position[1] + 
-              tess_coord.z * in_position[2];
-    
+    let pos = tess_coord.x * in_position[0]
+        + tess_coord.y * in_position[1]
+        + tess_coord.z * in_position[2];
+
     *out_position = ubo.projection * ubo.model * pos;
-    
-    *out_normal = tess_coord.x * in_normal[0] + 
-                  tess_coord.y * in_normal[1] + 
-                  tess_coord.z * in_normal[2];
-    
-    *out_uv = tess_coord.x * in_uv[0] + 
-              tess_coord.y * in_uv[1] + 
-              tess_coord.z * in_uv[2];
+
+    *out_normal =
+        tess_coord.x * in_normal[0] + tess_coord.y * in_normal[1] + tess_coord.z * in_normal[2];
+
+    *out_uv = tess_coord.x * in_uv[0] + tess_coord.y * in_uv[1] + tess_coord.z * in_uv[2];
 }

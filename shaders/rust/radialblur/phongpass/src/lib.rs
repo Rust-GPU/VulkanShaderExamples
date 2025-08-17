@@ -2,9 +2,8 @@
 
 use spirv_std::{
     glam::{Mat4, Vec2, Vec3, Vec4},
-    spirv,
     num_traits::Float,
-    Image, Sampler,
+    spirv, Image, Sampler,
 };
 
 #[repr(C)]
@@ -18,7 +17,7 @@ pub struct UBO {
 #[spirv(vertex)]
 pub fn main_vs(
     pos: Vec4,
-    _in_uv: Vec2,  // Location 1 - unused but needed to match GLSL layout
+    _in_uv: Vec2, // Location 1 - unused but needed to match GLSL layout
     in_color: Vec3,
     in_normal: Vec3,
     #[spirv(uniform, descriptor_set = 0, binding = 0)] ubo: &UBO,
@@ -33,12 +32,14 @@ pub fn main_vs(
     *out_color = in_color;
     *out_uv = Vec2::new(ubo.gradient_pos, 0.0);
     *out_position = ubo.projection * ubo.model * pos;
-    
+
     let eye_pos = ubo.model * pos;
     *out_eye_pos = Vec3::new(eye_pos.x, eye_pos.y, eye_pos.z);
-    
+
     let light_pos = Vec4::new(0.0, 0.0, -5.0, 1.0);
-    *out_light_vec = (Vec3::new(light_pos.x, light_pos.y, light_pos.z) - Vec3::new(pos.x, pos.y, pos.z)).normalize();
+    *out_light_vec = (Vec3::new(light_pos.x, light_pos.y, light_pos.z)
+        - Vec3::new(pos.x, pos.y, pos.z))
+    .normalize();
 }
 
 #[spirv(fragment)]
@@ -52,7 +53,7 @@ pub fn main_fs(
     #[spirv(descriptor_set = 0, binding = 1)] image_gradient_ramp: &Image!(2D, type=f32, sampled),
     out_frag_color: &mut Vec4,
 ) {
-    // No light calculations for glow color 
+    // No light calculations for glow color
     // Use max. color channel value
     // to detect bright glow emitters
     if in_color.x >= 0.9 || in_color.y >= 0.9 || in_color.z >= 0.9 {
@@ -64,13 +65,16 @@ pub fn main_fs(
     } else {
         let eye = (-in_eye_pos).normalize();
         let reflected = (-in_light_vec).reflect(in_normal).normalize();
-        
+
         let ambient = Vec4::new(0.2, 0.2, 0.2, 1.0);
         let diffuse = Vec4::new(0.5, 0.5, 0.5, 0.5) * in_normal.dot(in_light_vec).max(0.0);
         let specular_strength = 0.25;
-        let specular = Vec4::new(0.5, 0.5, 0.5, 1.0) * reflected.dot(eye).max(0.0).powf(4.0) * specular_strength;
-        
-        let result = (ambient + diffuse) * Vec4::new(in_color.x, in_color.y, in_color.z, 1.0) + specular;
+        let specular = Vec4::new(0.5, 0.5, 0.5, 1.0)
+            * reflected.dot(eye).max(0.0).powf(4.0)
+            * specular_strength;
+
+        let result =
+            (ambient + diffuse) * Vec4::new(in_color.x, in_color.y, in_color.z, 1.0) + specular;
         *out_frag_color = result;
     }
 }

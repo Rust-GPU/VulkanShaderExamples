@@ -1,8 +1,12 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{mat3, vec3, vec4, Mat3, Mat4, Vec2, Vec3, Vec4}, Image, num_traits::Float};
 use spirv_std::image::SampledImage;
+use spirv_std::{
+    glam::{mat3, vec3, vec4, Mat3, Mat4, Vec2, Vec3, Vec4},
+    num_traits::Float,
+    spirv, Image,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -40,8 +44,11 @@ pub fn main_vs(
     *out_color = in_color;
     *out_uv = in_uv;
     *out_tangent = in_tangent;
-    *out_position = ubo_scene.projection * ubo_scene.view * push_consts.model * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
-    
+    *out_position = ubo_scene.projection
+        * ubo_scene.view
+        * push_consts.model
+        * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
+
     let model_mat3 = mat3(
         push_consts.model.x_axis.truncate(),
         push_consts.model.y_axis.truncate(),
@@ -61,8 +68,12 @@ pub fn main_fs(
     in_view_vec: Vec3,
     in_light_vec: Vec3,
     in_tangent: Vec4,
-    #[spirv(descriptor_set = 1, binding = 0)] sampler_color_map: &SampledImage<Image!(2D, type=f32, sampled)>,
-    #[spirv(descriptor_set = 1, binding = 1)] sampler_normal_map: &SampledImage<Image!(2D, type=f32, sampled)>,
+    #[spirv(descriptor_set = 1, binding = 0)] sampler_color_map: &SampledImage<
+        Image!(2D, type=f32, sampled),
+    >,
+    #[spirv(descriptor_set = 1, binding = 1)] sampler_normal_map: &SampledImage<
+        Image!(2D, type=f32, sampled),
+    >,
     #[spirv(spec_constant(id = 0, default = 0))] alpha_mask: u32,
     #[spirv(spec_constant(id = 1, default = 0))] alpha_mask_cutoff_bits: u32,
     out_frag_color: &mut Vec4,
@@ -71,7 +82,7 @@ pub fn main_fs(
 
     let alpha_mask_enabled = alpha_mask != 0;
     let alpha_mask_cutoff = f32::from_bits(alpha_mask_cutoff_bits);
-    
+
     if alpha_mask_enabled {
         if color.w < alpha_mask_cutoff {
             #[cfg(target_arch = "spirv")]
@@ -90,12 +101,16 @@ pub fn main_fs(
     let l = in_light_vec.normalize();
     let v = in_view_vec.normalize();
     let r = (-l).reflect(n);
-    let diffuse = vec3(n.dot(l).max(AMBIENT), n.dot(l).max(AMBIENT), n.dot(l).max(AMBIENT));
+    let diffuse = vec3(
+        n.dot(l).max(AMBIENT),
+        n.dot(l).max(AMBIENT),
+        n.dot(l).max(AMBIENT),
+    );
     let specular = r.dot(v).max(0.0).powf(32.0);
     *out_frag_color = vec4(
         diffuse.x * color.x + specular,
         diffuse.y * color.y + specular,
         diffuse.z * color.z + specular,
-        color.w
+        color.w,
     );
 }

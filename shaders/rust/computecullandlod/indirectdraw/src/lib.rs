@@ -1,7 +1,7 @@
 #![no_std]
 
+use spirv_std::glam::{Mat4, Vec3, Vec4, Vec4Swizzles};
 use spirv_std::spirv;
-use spirv_std::glam::{Vec3, Vec4, Mat4, Vec4Swizzles};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -27,16 +27,16 @@ pub fn main_vs(
 ) {
     *out_color = in_color;
     *out_normal = in_normal;
-    
+
     let pos = Vec4::new(
         (in_pos.x * instance_scale) + instance_pos.x,
         (in_pos.y * instance_scale) + instance_pos.y,
         (in_pos.z * instance_scale) + instance_pos.z,
-        1.0
+        1.0,
     );
-    
+
     *out_position = ubo.projection * ubo.modelview * pos;
-    
+
     let l_pos = Vec4::new(0.0, 10.0, 50.0, 1.0);
     *out_light_vec = l_pos.xyz() - pos.xyz();
     *out_view_vec = -pos.xyz();
@@ -58,6 +58,6 @@ pub fn main_fs(
         (ambient.x + diffuse.x) * in_color.x,
         (ambient.y + diffuse.y) * in_color.y,
         (ambient.z + diffuse.z) * in_color.z,
-        1.0
+        1.0,
     );
 }

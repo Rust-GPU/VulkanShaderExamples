@@ -1,10 +1,10 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 
+use spirv_std::image::SampledImage;
 use spirv_std::{
     glam::{Mat4, Vec3, Vec4},
     spirv, Image,
 };
-use spirv_std::image::SampledImage;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -22,12 +22,15 @@ pub fn main_vs(
     out_uvw: &mut Vec3,
 ) {
     *out_uvw = in_pos;
-    *out_position = ubo.projection * ubo.view * ubo.model * Vec4::new(in_pos.x, in_pos.y, in_pos.z, 1.0);
+    *out_position =
+        ubo.projection * ubo.view * ubo.model * Vec4::new(in_pos.x, in_pos.y, in_pos.z, 1.0);
 }
 
 #[spirv(fragment)]
 pub fn main_fs(
-    #[spirv(descriptor_set = 0, binding = 1)] sampler_cube_map: &SampledImage<Image!(cube, type=f32, sampled)>,
+    #[spirv(descriptor_set = 0, binding = 1)] sampler_cube_map: &SampledImage<
+        Image!(cube, type=f32, sampled),
+    >,
     in_uvw: Vec3,
     out_frag_color: &mut Vec4,
 ) {

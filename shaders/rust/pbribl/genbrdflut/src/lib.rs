@@ -1,7 +1,7 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 
 use spirv_std::glam::{vec2, vec3, vec4, Vec2, Vec3, Vec4};
-use spirv_std::{spirv, num_traits::Float};
+use spirv_std::{num_traits::Float, spirv};
 
 use core::f32::consts::PI;
 
@@ -11,10 +11,7 @@ pub fn main_vs(
     #[spirv(position)] out_pos: &mut Vec4,
     out_uv: &mut Vec2,
 ) {
-    let uv = vec2(
-        ((vertex_index << 1) & 2) as f32,
-        (vertex_index & 2) as f32,
-    );
+    let uv = vec2(((vertex_index << 1) & 2) as f32, (vertex_index & 2) as f32);
     *out_uv = uv;
     *out_pos = vec4(uv.x * 2.0 - 1.0, uv.y * 2.0 - 1.0, 0.0, 1.0);
 }
@@ -48,9 +45,9 @@ fn importance_sample_ggx(xi: Vec2, roughness: f32, normal: Vec3) -> Vec3 {
     let phi = 2.0 * PI * xi.x + random(vec2(normal.x, normal.z)) * 0.1;
     let cos_theta = ((1.0 - xi.y) / (1.0 + (alpha * alpha - 1.0) * xi.y)).sqrt();
     let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
-    
+
     let h = vec3(sin_theta * phi.cos(), sin_theta * phi.sin(), cos_theta);
-    
+
     // Tangent space
     let up = if normal.z.abs() < 0.999 {
         vec3(0.0, 0.0, 1.0)
@@ -59,7 +56,7 @@ fn importance_sample_ggx(xi: Vec2, roughness: f32, normal: Vec3) -> Vec3 {
     };
     let tangent_x = up.cross(normal).normalize();
     let tangent_y = normal.cross(tangent_x).normalize();
-    
+
     // Convert to world space
     (tangent_x * h.x + tangent_y * h.y + normal * h.z).normalize()
 }
@@ -77,19 +74,19 @@ fn brdf(nov: f32, roughness: f32, num_samples: u32) -> Vec2 {
     // Normal always points along z-axis for the 2D lookup
     let n = vec3(0.0, 0.0, 1.0);
     let v = vec3((1.0 - nov * nov).sqrt(), 0.0, nov);
-    
+
     let mut lut = Vec2::ZERO;
-    
+
     for i in 0..num_samples {
         let xi = hammersley2d(i, num_samples);
         let h = importance_sample_ggx(xi, roughness, n);
         let l = 2.0 * v.dot(h) * h - v;
-        
+
         let dot_nl = n.dot(l).max(0.0);
         let dot_nv = n.dot(v).max(0.0);
         let dot_vh = v.dot(h).max(0.0);
         let dot_nh = h.dot(n).max(0.0);
-        
+
         if dot_nl > 0.0 {
             let g = g_schlicksmith_ggx(dot_nl, dot_nv, roughness);
             let g_vis = (g * dot_vh) / (dot_nh * dot_nv);
@@ -98,15 +95,12 @@ fn brdf(nov: f32, roughness: f32, num_samples: u32) -> Vec2 {
             lut += vec2((1.0 - fc) * g_vis, fc * g_vis);
         }
     }
-    
+
     lut / (num_samples as f32)
 }
 
 #[spirv(fragment)]
-pub fn main_fs(
-    in_uv: Vec2,
-    out_color: &mut Vec4,
-) {
+pub fn main_fs(in_uv: Vec2, out_color: &mut Vec4) {
     // Default to 1024 samples as in the GLSL version
     const NUM_SAMPLES: u32 = 1024;
     let result = brdf(in_uv.x, in_uv.y, NUM_SAMPLES);

@@ -1,7 +1,11 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{mat3, vec3, vec4, Mat4, Vec3, Vec4}, num_traits::Float};
+use spirv_std::{
+    glam::{mat3, vec3, vec4, Mat4, Vec3, Vec4},
+    num_traits::Float,
+    spirv,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -30,9 +34,9 @@ pub fn main_vs(
     } else {
         *out_color = in_color;
     }
-    
+
     *out_position = push_consts.mvp * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
-    
+
     let pos = push_consts.mvp * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
     let mvp_mat3 = mat3(
         push_consts.mvp.x_axis.truncate(),
@@ -59,5 +63,10 @@ pub fn main_fs(
     let r = (-l).reflect(n);
     let diffuse = n.dot(l).max(0.0) * in_color;
     let specular = r.dot(v).max(0.0).powf(8.0) * vec3(0.75, 0.75, 0.75);
-    *out_frag_color = vec4(diffuse.x + specular.x, diffuse.y + specular.y, diffuse.z + specular.z, 1.0);
+    *out_frag_color = vec4(
+        diffuse.x + specular.x,
+        diffuse.y + specular.y,
+        diffuse.z + specular.z,
+        1.0,
+    );
 }

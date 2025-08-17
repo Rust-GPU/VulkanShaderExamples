@@ -2,8 +2,7 @@
 
 use spirv_std::{
     glam::{Mat4, Vec2, Vec3, Vec4},
-    spirv,
-    Image, Sampler,
+    spirv, Image, Sampler,
 };
 
 #[repr(C)]
@@ -17,7 +16,7 @@ pub struct UBO {
 #[spirv(vertex)]
 pub fn main_vs(
     in_pos: Vec3,
-    _in_uv: Vec2,  // Location 1 - unused but needed to match GLSL layout
+    _in_uv: Vec2, // Location 1 - unused but needed to match GLSL layout
     in_color: Vec3,
     #[spirv(uniform, descriptor_set = 0, binding = 0)] ubo: &UBO,
     #[spirv(position)] out_position: &mut Vec4,

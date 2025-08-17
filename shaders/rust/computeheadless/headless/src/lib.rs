@@ -1,7 +1,7 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::UVec3};
+use spirv_std::{glam::UVec3, spirv};
 
 fn fibonacci(n: u32) -> u32 {
     if n <= 1 {
@@ -27,6 +27,6 @@ pub fn main_cs(
     if index >= buffer_elements {
         return;
     }
-    
+
     values[index as usize] = fibonacci(values[index as usize]);
 }

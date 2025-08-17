@@ -1,8 +1,11 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{vec3, vec4, Mat4, Vec2, Vec3, Vec4}, Image};
 use spirv_std::image::SampledImage;
+use spirv_std::{
+    glam::{vec3, vec4, Mat4, Vec2, Vec3, Vec4},
+    spirv, Image,
+};
 // Each Instance needs to be exactly 80 bytes for proper alignment in arrays
 // NOTE: rust-gpu has issues with array padding in structs that are themselves in arrays,
 // so we use individual padding fields instead of _pad: [f32; 3]
@@ -12,7 +15,7 @@ pub struct Instance {
     pub model: Mat4,      // 64 bytes
     pub array_index: f32, // 4 bytes
     pub _pad0: f32,       // 4 bytes padding
-    pub _pad1: f32,       // 4 bytes padding  
+    pub _pad1: f32,       // 4 bytes padding
     pub _pad2: f32,       // 4 bytes padding
 }
 
@@ -42,7 +45,9 @@ pub fn main_vs(
 #[spirv(fragment)]
 pub fn main_fs(
     in_uv: Vec3,
-    #[spirv(descriptor_set = 0, binding = 1)] sampler_array: &SampledImage<Image!(2D, type=f32, sampled, arrayed)>,
+    #[spirv(descriptor_set = 0, binding = 1)] sampler_array: &SampledImage<
+        Image!(2D, type=f32, sampled, arrayed),
+    >,
     out_frag_color: &mut Vec4,
 ) {
     *out_frag_color = sampler_array.sample(in_uv);

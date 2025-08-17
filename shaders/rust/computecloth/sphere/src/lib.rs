@@ -1,8 +1,8 @@
 #![no_std]
 
-use spirv_std::spirv;
 use spirv_std::glam::{Mat4, Vec3, Vec4, Vec4Swizzles};
 use spirv_std::num_traits::Float;
+use spirv_std::spirv;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -33,12 +33,7 @@ pub fn main_vs(
 }
 
 #[spirv(fragment)]
-pub fn main_fs(
-    in_normal: Vec3,
-    in_view_vec: Vec3,
-    in_light_vec: Vec3,
-    out_frag_color: &mut Vec4,
-) {
+pub fn main_fs(in_normal: Vec3, in_view_vec: Vec3, in_light_vec: Vec3, out_frag_color: &mut Vec4) {
     let color = Vec3::splat(0.5);
     let n = in_normal.normalize();
     let l = in_light_vec.normalize();
@@ -50,6 +45,6 @@ pub fn main_fs(
         diffuse.x * color.x + specular.x,
         diffuse.y * color.y + specular.y,
         diffuse.z * color.z + specular.z,
-        1.0
+        1.0,
     );
 }

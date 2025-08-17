@@ -1,8 +1,12 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{mat3, vec3, vec4, Mat4, Vec2, Vec3, Vec4}, Image, num_traits::Float};
 use spirv_std::image::SampledImage;
+use spirv_std::{
+    glam::{mat3, vec3, vec4, Mat4, Vec2, Vec3, Vec4},
+    num_traits::Float,
+    spirv, Image,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -29,7 +33,6 @@ pub fn main_vs(
     *out_uv = in_uv;
     *out_lod_bias = ubo.lod_bias;
 
-
     *out_position = ubo.projection * ubo.model * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
 
     let pos = ubo.model * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
@@ -38,7 +41,9 @@ pub fn main_vs(
         ubo.model.y_axis.truncate(),
         ubo.model.z_axis.truncate(),
     );
-    *out_normal = (ubo.model.inverse().transpose() * vec4(in_normal.x, in_normal.y, in_normal.z, 0.0)).truncate();
+    *out_normal = (ubo.model.inverse().transpose()
+        * vec4(in_normal.x, in_normal.y, in_normal.z, 0.0))
+    .truncate();
     let light_pos = vec3(0.0, 0.0, 0.0);
     let l_pos = model_mat3 * light_pos;
     *out_light_vec = l_pos - pos.truncate();
@@ -52,7 +57,9 @@ pub fn main_fs(
     in_normal: Vec3,
     in_view_vec: Vec3,
     in_light_vec: Vec3,
-    #[spirv(descriptor_set = 0, binding = 1)] color_sampler: &SampledImage<Image!(2D, type=f32, sampled)>,
+    #[spirv(descriptor_set = 0, binding = 1)] color_sampler: &SampledImage<
+        Image!(2D, type=f32, sampled),
+    >,
     out_frag_color: &mut Vec4,
 ) {
     let color = color_sampler.sample(in_uv);

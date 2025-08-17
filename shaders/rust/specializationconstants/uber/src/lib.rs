@@ -1,8 +1,12 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{mat3, vec3, vec4, Mat4, Vec2, Vec3, Vec4}, Image, num_traits::Float};
 use spirv_std::image::SampledImage;
+use spirv_std::{
+    glam::{mat3, vec3, vec4, Mat4, Vec2, Vec3, Vec4},
+    num_traits::Float,
+    spirv, Image,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -30,7 +34,7 @@ pub fn main_vs(
     *out_color = in_color;
     *out_uv = in_uv;
     *out_position = ubo.projection * ubo.model * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
-    
+
     let pos = ubo.model * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
     let model_mat3 = mat3(
         ubo.model.x_axis.truncate(),
@@ -50,8 +54,12 @@ pub fn main_fs(
     in_uv: Vec2,
     in_view_vec: Vec3,
     in_light_vec: Vec3,
-    #[spirv(descriptor_set = 0, binding = 1)] colormap_sampler: &SampledImage<Image!(2D, type=f32, sampled)>,
-    #[spirv(descriptor_set = 0, binding = 2)] _discard_sampler: &SampledImage<Image!(2D, type=f32, sampled)>,
+    #[spirv(descriptor_set = 0, binding = 1)] colormap_sampler: &SampledImage<
+        Image!(2D, type=f32, sampled),
+    >,
+    #[spirv(descriptor_set = 0, binding = 2)] _discard_sampler: &SampledImage<
+        Image!(2D, type=f32, sampled),
+    >,
     #[spirv(spec_constant(id = 0))] lighting_model: u32,
     #[spirv(spec_constant(id = 1))] toon_desaturation_bits: u32,
     out_frag_color: &mut Vec4,
@@ -66,7 +74,12 @@ pub fn main_fs(
             let r = (-l).reflect(n);
             let diffuse = n.dot(l).max(0.0) * in_color;
             let specular = r.dot(v).max(0.0).powf(32.0) * vec3(0.75, 0.75, 0.75);
-            *out_frag_color = vec4((ambient + diffuse * 1.75 + specular).x, (ambient + diffuse * 1.75 + specular).y, (ambient + diffuse * 1.75 + specular).z, 1.0);
+            *out_frag_color = vec4(
+                (ambient + diffuse * 1.75 + specular).x,
+                (ambient + diffuse * 1.75 + specular).y,
+                (ambient + diffuse * 1.75 + specular).z,
+                1.0,
+            );
         }
         1 => {
             // Toon
@@ -87,7 +100,10 @@ pub fn main_fs(
             // Desaturate a bit - convert u32 bits to f32
             let toon_desaturation = f32::from_bits(toon_desaturation_bits);
             let desaturated = vec3(0.2126, 0.7152, 0.0722).dot(color);
-            let final_color = color.lerp(vec3(desaturated, desaturated, desaturated), toon_desaturation);
+            let final_color = color.lerp(
+                vec3(desaturated, desaturated, desaturated),
+                toon_desaturation,
+            );
             *out_frag_color = vec4(final_color.x, final_color.y, final_color.z, 1.0);
         }
         2 => {

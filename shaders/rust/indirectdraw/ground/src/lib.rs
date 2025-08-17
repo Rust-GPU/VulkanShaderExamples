@@ -1,7 +1,7 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 
+use spirv_std::glam::{Mat4, Vec2, Vec3, Vec4};
 use spirv_std::spirv;
-use spirv_std::glam::{Vec2, Vec3, Vec4, Mat4};
 
 #[repr(C)]
 pub struct UBO {
@@ -26,7 +26,9 @@ pub fn main_vs(
 #[spirv(fragment)]
 pub fn main_fs(
     in_uv: Vec2,
-    #[spirv(descriptor_set = 0, binding = 2)] sampler_color: &spirv_std::image::SampledImage<spirv_std::image::Image2d>,
+    #[spirv(descriptor_set = 0, binding = 2)] sampler_color: &spirv_std::image::SampledImage<
+        spirv_std::image::Image2d,
+    >,
     out_color: &mut Vec4,
 ) {
     *out_color = sampler_color.sample(in_uv);

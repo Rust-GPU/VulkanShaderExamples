@@ -32,25 +32,25 @@ pub fn main_fs(
     let frag_pos = texture_position.sample(*sampler_position, in_uv).xyz();
     let normal = (texture_normal.sample(*sampler_normal, in_uv).xyz() * 2.0 - 1.0).normalize();
     let albedo = texture_albedo.sample(*sampler_albedo, in_uv);
-    
+
     let ssao = if ubo_params.ssao_blur == 1 {
         texture_ssao_blur.sample(*sampler_ssao_blur, in_uv).x
     } else {
         texture_ssao.sample(*sampler_ssao, in_uv).x
     };
-    
+
     let light_pos = Vec3::ZERO;
     let l = (light_pos - frag_pos).normalize();
     let n_dot_l = normal.dot(l).max(0.5);
-    
+
     if ubo_params.ssao_only == 1 {
         *out_frag_color = vec4(ssao, ssao, ssao, 1.0);
     } else {
         let base_color = albedo.xyz() * n_dot_l;
-        
+
         if ubo_params.ssao == 1 {
             let mut color = vec3(ssao, ssao, ssao);
-            
+
             if ubo_params.ssao_only != 1 {
                 color *= base_color;
             }

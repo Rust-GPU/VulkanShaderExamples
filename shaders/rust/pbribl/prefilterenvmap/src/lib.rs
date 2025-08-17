@@ -1,9 +1,8 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 
-use spirv_std::glam::{vec2, vec3, vec4, Mat4, Vec2, Vec3, Vec4, UVec2};
-use spirv_std::{spirv, num_traits::Float};
-use spirv_std::image::{SampledImage, Cubemap};
-
+use spirv_std::glam::{vec2, vec3, vec4, Mat4, UVec2, Vec2, Vec3, Vec4};
+use spirv_std::image::{Cubemap, SampledImage};
+use spirv_std::{num_traits::Float, spirv};
 
 // Push constants with padding to match GLSL layout
 #[derive(Copy, Clone)]
@@ -62,9 +61,9 @@ fn importance_sample_ggx(xi: Vec2, roughness: f32, normal: Vec3) -> Vec3 {
     let phi = TAU * xi.x + random(vec2(normal.x, normal.z)) * 0.1;
     let cos_theta = ((1.0 - xi.y) / (1.0 + (alpha * alpha - 1.0) * xi.y)).sqrt();
     let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
-    
+
     let h = vec3(sin_theta * phi.cos(), sin_theta * phi.sin(), cos_theta);
-    
+
     // Tangent space
     let up = if normal.z.abs() < 0.999 {
         vec3(0.0, 0.0, 1.0)
@@ -73,7 +72,7 @@ fn importance_sample_ggx(xi: Vec2, roughness: f32, normal: Vec3) -> Vec3 {
     };
     let tangent_x = up.cross(normal).normalize();
     let tangent_y = normal.cross(tangent_x).normalize();
-    
+
     // Convert to world space
     (tangent_x * h.x + tangent_y * h.y + normal * h.z).normalize()
 }
@@ -97,22 +96,22 @@ fn prefilter_env_map(
     let v = r;
     let mut color = Vec3::ZERO;
     let mut total_weight = 0.0;
-    
+
     // Get environment map dimensions
     // For cubemaps, query_size_lod returns a UVec2 with the dimensions of one face
     let env_map_size: UVec2 = sampler_env.query_size_lod(0);
     let env_map_dim = env_map_size.x as f32;
-    
+
     for i in 0..num_samples {
         let xi = hammersley2d(i, num_samples);
         let h = importance_sample_ggx(xi, roughness, n);
         let l = 2.0 * v.dot(h) * h - v;
         let dot_nl = n.dot(l).clamp(0.0, 1.0);
-        
+
         if dot_nl > 0.0 {
             let dot_nh = n.dot(h).clamp(0.0, 1.0);
             let dot_vh = v.dot(h).clamp(0.0, 1.0);
-            
+
             // Probability Distribution Function
             let pdf = d_ggx(dot_nh, roughness) * dot_nh / (4.0 * dot_vh) + 0.0001;
             // Solid angle of current sample
@@ -125,12 +124,12 @@ fn prefilter_env_map(
             } else {
                 (0.5 * (omega_s / omega_p).log2() + 1.0).max(0.0)
             };
-            
+
             color += sampler_env.sample_by_lod(l, mip_level).truncate() * dot_nl;
             total_weight += dot_nl;
         }
     }
-    
+
     color / total_weight
 }
 

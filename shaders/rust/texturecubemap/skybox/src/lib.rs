@@ -1,7 +1,10 @@
 #![no_std]
 
 use spirv_std::spirv;
-use spirv_std::{glam::{vec4, Mat3, Mat4, Vec3, Vec4}, image::{Cubemap, SampledImage}};
+use spirv_std::{
+    glam::{vec4, Mat3, Mat4, Vec3, Vec4},
+    image::{Cubemap, SampledImage},
+};
 
 #[repr(C)]
 pub struct SkyboxUBO {
@@ -20,7 +23,7 @@ pub fn main_vs(
     *out_uvw = in_pos;
     out_uvw.x *= -1.0;
     out_uvw.y *= -1.0;
-    
+
     let view_mat = Mat4::from_mat3(Mat3::from_mat4(ubo.model));
     *out_pos = ubo.projection * view_mat * vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
 }

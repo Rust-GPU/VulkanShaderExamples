@@ -2,8 +2,7 @@
 
 use spirv_std::{
     glam::{Vec2, Vec4},
-    spirv,
-    Image, Sampler,
+    spirv, Image, Sampler,
 };
 
 #[spirv(vertex)]
@@ -12,10 +11,7 @@ pub fn main_vs(
     #[spirv(position)] out_position: &mut Vec4,
     out_uv: &mut Vec2,
 ) {
-    let uv = Vec2::new(
-        ((vertex_index << 1) & 2) as f32,
-        (vertex_index & 2) as f32,
-    );
+    let uv = Vec2::new(((vertex_index << 1) & 2) as f32, (vertex_index & 2) as f32);
     *out_uv = uv;
     *out_position = Vec4::new(uv.x * 2.0 - 1.0, uv.y * 2.0 - 1.0, 0.0, 1.0);
 }

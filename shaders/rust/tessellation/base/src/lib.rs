@@ -1,7 +1,10 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{Vec2, Vec3, Vec4}, Image, Sampler};
+use spirv_std::{
+    glam::{Vec2, Vec3, Vec4},
+    spirv, Image, Sampler,
+};
 
 #[spirv(vertex)]
 pub fn main_vs(
@@ -27,14 +30,14 @@ pub fn main_fs(
 ) {
     let n = in_normal.normalize();
     let l = Vec3::new(-4.0, -4.0, 0.0).normalize();
-    
+
     let color: Vec4 = color_texture.sample(*color_sampler, in_uv);
-    
+
     let lighting = n.dot(l).max(0.0).clamp(0.2, 1.0);
     *out_frag_color = Vec4::new(
         lighting * color.x,
         lighting * color.y,
         lighting * color.z,
-        color.w
+        color.w,
     );
 }

@@ -1,9 +1,8 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 
 use spirv_std::{
-    glam::{Vec2, Vec4, UVec2},
-    spirv,
-    Image, Sampler,
+    glam::{UVec2, Vec2, Vec4},
+    spirv, Image, Sampler,
 };
 
 #[spirv(vertex)]
@@ -12,10 +11,7 @@ pub fn main_vs(
     #[spirv(position)] out_position: &mut Vec4,
     out_uv: &mut Vec2,
 ) {
-    let uv = Vec2::new(
-        ((vertex_index << 1) & 2) as f32,
-        (vertex_index & 2) as f32,
-    );
+    let uv = Vec2::new(((vertex_index << 1) & 2) as f32, (vertex_index & 2) as f32);
     *out_uv = uv;
     *out_position = Vec4::new(uv.x * 2.0 - 1.0, uv.y * 2.0 - 1.0, 0.0, 1.0);
 }
@@ -69,7 +65,8 @@ pub fn main_fs(
         ar = ts.y as f32 / ts.x as f32;
     }
 
-    let p = Vec2::new(in_uv.y, in_uv.x) - Vec2::new(0.0, (WEIGHTS.len() as f32 / 2.0) * ar * BLUR_SCALE);
+    let p = Vec2::new(in_uv.y, in_uv.x)
+        - Vec2::new(0.0, (WEIGHTS.len() as f32 / 2.0) * ar * BLUR_SCALE);
 
     let mut color = Vec4::ZERO;
     for i in 0..WEIGHTS.len() {

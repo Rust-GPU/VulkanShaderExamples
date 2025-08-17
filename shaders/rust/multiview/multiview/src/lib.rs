@@ -1,7 +1,11 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![allow(clippy::missing_safety_doc)]
 
-use spirv_std::{spirv, glam::{vec3, vec4, Mat3, Mat4, Vec3, Vec4}, num_traits::Float};
+use spirv_std::{
+    glam::{vec3, vec4, Mat3, Mat4, Vec3, Vec4},
+    num_traits::Float,
+    spirv,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -29,7 +33,7 @@ pub fn main_vs(
 
     let pos = vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
     let world_pos = ubo.modelview[view_index as usize] * pos;
-    
+
     let l_pos = ubo.modelview[view_index as usize] * ubo.light_pos;
     *out_light_vec = vec3(l_pos.x, l_pos.y, l_pos.z) - vec3(world_pos.x, world_pos.y, world_pos.z);
     *out_view_vec = -vec3(world_pos.x, world_pos.y, world_pos.z);
@@ -56,6 +60,6 @@ pub fn main_fs(
         (ambient.x + diffuse.x) * in_color.x + specular.x,
         (ambient.y + diffuse.y) * in_color.y + specular.y,
         (ambient.z + diffuse.z) * in_color.z + specular.z,
-        1.0
+        1.0,
     );
 }

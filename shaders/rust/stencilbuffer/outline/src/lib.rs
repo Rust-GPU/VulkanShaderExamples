@@ -1,7 +1,7 @@
 #![no_std]
 
-use spirv_std::spirv;
 use spirv_std::glam::{Mat4, Vec3, Vec4};
+use spirv_std::spirv;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -25,14 +25,12 @@ pub fn main_vs(
         in_pos.x + in_normal.x * ubo.outline_width,
         in_pos.y + in_normal.y * ubo.outline_width,
         in_pos.z + in_normal.z * ubo.outline_width,
-        in_pos.w
+        in_pos.w,
     );
     *out_position = ubo.projection * ubo.model * pos;
 }
 
 #[spirv(fragment)]
-pub fn main_fs(
-    out_frag_color: &mut Vec4,
-) {
+pub fn main_fs(out_frag_color: &mut Vec4) {
     *out_frag_color = Vec4::new(1.0, 1.0, 1.0, 1.0);
 }
